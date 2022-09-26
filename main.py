@@ -108,13 +108,13 @@ if __name__ == '__main__':
     MC1, BC1 = get_sequence_params(X1)
     MC2, BC2 = get_sequence_params(X2)
 
-    result_distance = get_distance(MC1, MC2, BC1, BC2)
+    result_distance = get_distance(MC1, MC2, COR_MATRIX, COR_MATRIX)
     print(f'Result distance (task 2): {result_distance}')
 
     MC2_1, BC2_1 = get_sequence_params(X2_1)
     MC2_2, BC2_2 = get_sequence_params(X2_2)
     MC2_3, BC2_3 = get_sequence_params(X2_3)
 
-    print(f'Result distance between 1-2 (task 3): {get_distance(MC2_1, MC2_2, BC2_1, BC2_2)}')
-    print(f'Result distance between 1-3 (task 3): {get_distance(MC2_1, MC2_3, BC2_1, BC2_3)}')
-    print(f'Result distance between 2-3 (task 3): {get_distance(MC2_2, MC2_3, BC2_2, BC2_3)}')
+    print(f'Result distance between 1-2 (task 3): {get_distance(MC2_1, MC2_2, b2_1, b2_2)}')
+    print(f'Result distance between 1-3 (task 3): {get_distance(MC2_1, MC2_3, b2_1, b2_3)}')
+    print(f'Result distance between 2-3 (task 3): {get_distance(MC2_2, MC2_3, b2_2, b2_3)}')
