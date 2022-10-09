@@ -2,23 +2,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.random import rand
 
-
 N = 200
 MATRICES_COUNT = 20
 GRAPH_SIZE = (10, 10)
 
-COR_MATRIX = np.array(([6, -0.2],
-                       [-0.2, 6]))
+COR_MATRIX = np.array(([1, -0.2],
+                       [-0.2, 1]))
 
 M1 = [1, -1]
 M2 = [2, 2]
 M3 = [-1, 1]
 
 
-def get_normal_vector(dim, length, accuracy=20):
+def get_normal_vector(dim, length):
     vector = np.zeros([dim, length], "uint8")
 
-    for step in range(1, accuracy):
+    for step in range(1, length):
         vector = vector + [np.random.uniform(-0.5, 0.5, length), np.random.uniform(-0.5, 0.5, length)]
 
     return vector / (np.sqrt(length) * np.sqrt(1 / 12))
@@ -34,7 +33,7 @@ def get_sequence_params(vector):
         x_without_m = np.reshape(x_without_m, (2, 1))
         B += np.matmul(x_without_m, np.transpose(x_without_m))
 
-    B /= N
+    B /= (N - 1)
     return M, B
 
 
@@ -86,14 +85,14 @@ if __name__ == '__main__':
 
     # 3
     b2_1 = np.array((
-        [5, 0],
-        [0, 5]))
+        [0.5, 0.3],
+        [0.3, 0.5]))
     b2_2 = np.array((
-        [6, 0.1],
-        [0.1, 6]))
+        [0.5, 0.2],
+        [0.2, 0.5]))
     b2_3 = np.array((
-        [7, -0.2],
-        [-0.2, 7]))
+        [0.5, -0.2],
+        [-0.2, 0.5]))
 
     X2_1 = get_dataset(get_normal_vector(2, N), M1, b2_1)
     X2_2 = get_dataset(get_normal_vector(2, N), M2, b2_2)
