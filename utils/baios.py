@@ -1,8 +1,9 @@
+import math
+
 import numpy as np
 
 
-# k = x1, чтобы посчитать x0
-def get_coords_when_cor_matrices_have_difference(Bj, Bl, Mj, Ml, Pl, Pj, k):
+def get_bayos_lines(Bj, Bl, Mj, Ml, Pl, Pj, k):
     d, e = __get_de(Mj, Ml, Bj, Bl)
     f = __get_f(Mj, Ml, Bj, Bl, Pl, Pj)
     a = __get_a(Bj, Bl)
@@ -15,12 +16,6 @@ def get_coords_when_cor_matrices_have_difference(Bj, Bl, Mj, Ml, Pl, Pj, k):
 
         return (-b - sqrt_D) / (2 * a), (-b + sqrt_D) / (2 * a)
     return -1 / d * (e * k + f)
-
-
-
-def __mul_3_matrices(mat_1, mat_2, mat_3):
-    tmp_result = np.matmul(mat_1, mat_2)
-    return np.matmul(tmp_result, mat_3)
 
 
 def __get_a(Bj, Bl):
@@ -89,9 +84,29 @@ def get_line(shape, b1, b2, m1, m2, p):
     i = -(shape[0]/2.0)
     while i < shape[1]/2.0 - step:
         x0_vector[counter] = i
-        x1_vector = get_coords_when_cor_matrices_have_difference(b1, b2, m1, m2, p, p, i)
+        x1_vector = get_bayos_lines(b1, b2, m1, m2, p, p, i)
         x1_a_vector[counter] = x1_vector[0]
         x1_b_vector[counter] = x1_vector[1]
         counter += 1
         i += step
     return x0_vector, x1_a_vector, x1_b_vector
+
+
+def __mul_3_matrices(mat_1, mat_2, mat_3):
+    tmp_result = np.matmul(mat_1, mat_2)
+    return np.matmul(tmp_result, mat_3)
+
+# X классифицируется в класс с параметрами индекса 1 -> ошибка 0. Иначе 1
+def baios_classifier(P1, P2, B1, B2, M1, M2, X):
+    if __discriminant_function(P1, B1, M1, X) >= __discriminant_function(P2, B2, M2, X):
+        return 0
+    return 1
+
+
+def __discriminant_function(P, B, M, X):
+    det_B = np.linalg.det(B)
+    x_M_transpose = np.transpose(X - M)
+    x_M = X - M
+    inv_B = np.linalg.inv(B)
+
+    return np.log(P) - np.log(np.sqrt(det_B)) - 0.5 * __mul_3_matrices(x_M_transpose, inv_B, x_M)
