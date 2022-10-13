@@ -71,7 +71,7 @@ def __get_f(Mj, Ml, Bj, Bl, pl, pj):
     return sum_part1 + sum_part2 - MlBlMl + MjBjMj
 
 
-def get_line(shape, b1, b2, m1, m2, p):
+def get_baios_line(shape, b1, b2, m1, m2, p):
 
     step = 0.005
     points_count = shape[0]/step
@@ -104,6 +104,7 @@ def __mul_3_matrices(mat_1, mat_2, mat_3):
     tmp_result = np.matmul(mat_1, mat_2)
     return np.matmul(tmp_result, mat_3)
 
+
 # X классифицируется в класс с параметрами индекса 1 -> ошибка 0. Иначе 1
 def baios_classifier(P1, P2, B1, B2, M1, M2, X):
     if __discriminant_function(P1, B1, M1, X) >= __discriminant_function(P2, B2, M2, X):
@@ -118,3 +119,10 @@ def __discriminant_function(P, B, M, X):
     inv_B = np.linalg.inv(B)
 
     return np.log(P) - np.log(np.sqrt(det_B)) - 0.5 * __mul_3_matrices(x_M_transpose, inv_B, x_M)
+
+
+def get_experimental_probability(experiments_count, p1, p2, b1, b2, M1, M2, X1):
+    sum = 0
+    for i in range(0, experiments_count):
+        sum += baios_classifier(p1, p2, b1, b2, M1, M2, np.array([X1[0][i], X1[1][i]]))
+    return sum / experiments_count
