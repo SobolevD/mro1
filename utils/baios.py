@@ -82,14 +82,22 @@ def get_line(shape, b1, b2, m1, m2, p):
 
     counter = 0
     i = -(shape[0]/2.0)
+    if not np.array_equal(b1, b2):
+        while i < shape[1] / 2.0 - step:
+            x0_vector[counter] = i
+            x1_vector = get_bayos_lines(b1, b2, m1, m2, p, p, i)
+            x1_a_vector[counter] = x1_vector[0]
+            x1_b_vector[counter] = x1_vector[1]
+            counter += 1
+            i += step
+        return x0_vector, x1_a_vector, x1_b_vector
     while i < shape[1]/2.0 - step:
         x0_vector[counter] = i
         x1_vector = get_bayos_lines(b1, b2, m1, m2, p, p, i)
-        x1_a_vector[counter] = x1_vector[0]
-        x1_b_vector[counter] = x1_vector[1]
+        x1_a_vector[counter] = x1_vector
         counter += 1
         i += step
-    return x0_vector, x1_a_vector, x1_b_vector
+    return x0_vector, x1_a_vector
 
 
 def __mul_3_matrices(mat_1, mat_2, mat_3):

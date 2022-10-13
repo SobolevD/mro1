@@ -23,30 +23,20 @@ def calculate_Mahalanobis_distance(M1, M2, cor_matrix_B):
 
 
 # считаются теоретические вероятности ошибочной классификации
-def calculate_p_error_B_equal(M1, M2, cor_matrix_B):
-    Mahalnobis_distance = calculate_Mahalanobis_distance(M1, M2, cor_matrix_B)
-    p = [0, 0]
-    # p01
-    p[0] = 1 - laplas_function(0.5 * np.sqrt(Mahalnobis_distance[0]))
-    # p10
-    p[1] = laplas_function(-0.5 * np.sqrt(Mahalnobis_distance[0]))
-    return p
 
-
-def calculate_p_error_B_unequal(M1, M2, cor_matrix_B, C, P_omega_0, P_omega_1):
-    lambda_tilda = get_lambda(P_omega_0, P_omega_1, C)
+def get_p_error(M1, M2, cor_matrix_B, C, P0, P1):
+    lambda_tilda = get_lambda(P0, P1, C)
 
     Mahalnobis_distance = calculate_Mahalanobis_distance(M1, M2, cor_matrix_B)
-    p = [0, 0]
 
     # p01
     under_laplas_expression = (lambda_tilda + 0.5 * Mahalnobis_distance) / (np.sqrt(Mahalnobis_distance))
-    p[0] = 1 - laplas_function(under_laplas_expression)
+    p0 = 1 - laplas_function(under_laplas_expression)
 
     # p10
     under_laplas_expression = (lambda_tilda - 0.5 * Mahalnobis_distance) / (np.sqrt(Mahalnobis_distance))
-    p[1] = laplas_function(under_laplas_expression)
-    return p
+    p1 = laplas_function(under_laplas_expression)
+    return p0, p1
 
 
 def get_lambda(P1, P2, C):
