@@ -14,8 +14,8 @@ if __name__ == '__main__':
     normal_vector1 = get_normal_vector(2, N)
     normal_vector2 = get_normal_vector(2, N)
     #
-    X1 = get_dataset(normal_vector1, M1, COR_MATRIX)
-    X2 = get_dataset(normal_vector2, M2, COR_MATRIX)
+    X1 = get_dataset(normal_vector1, M1, COR_MATRIX, N)
+    X2 = get_dataset(normal_vector2, M2, COR_MATRIX, N)
 
     y_bs_vector, x_bs_vector = get_baios_line(GRAPH_SIZE, COR_MATRIX, COR_MATRIX, M1, M2, 0.5)
     y_np_vector, x_np_vector = get_neuman_pearson_line(GRAPH_SIZE, COR_MATRIX, M1, M2, 0.05)
@@ -31,13 +31,33 @@ if __name__ == '__main__':
 
     # 3
 
-    X2_1 = get_dataset(get_normal_vector(2, N), M1, b2_1)
-    X2_2 = get_dataset(get_normal_vector(2, N), M2, b2_2)
-    X2_3 = get_dataset(get_normal_vector(2, N), M3, b2_3)
+    X2_1 = get_dataset(get_normal_vector(2, N), M1, b2_1, N)
+    X2_2 = get_dataset(get_normal_vector(2, N), M2, b2_2, N)
+    X2_3 = get_dataset(get_normal_vector(2, N), M3, b2_3, N)
 
     x0_12_vector, x1_12_a_vector, x1_12_b_vector = get_baios_line(GRAPH_SIZE, b2_1, b2_2, M1, M2, 1.0 / 3.0)
+
+    for i in range (0, 1999):
+        if x1_12_b_vector[i] > 1.0:
+            x0_12_vector[i] = 0
+            x1_12_a_vector[i] = 0
+            x1_12_b_vector[i] = 0
+
     x0_13_vector, x1_13_a_vector, x1_13_b_vector = get_baios_line(GRAPH_SIZE, b2_1, b2_3, M1, M3, 1.0 / 3.0)
+
+    for i in range (0, 1999):
+        if x1_13_a_vector[i] > 1.0:
+            x0_13_vector[i] = 0
+            x1_13_a_vector[i] = 0
+            x1_13_b_vector[i] = 0
+
     x0_23_vector, x1_23_a_vector, x1_23_b_vector = get_baios_line(GRAPH_SIZE, b2_2, b2_3, M2, M3, 1.0 / 3.0)
+
+    for i in range (0, 1999):
+        if x1_23_a_vector[i] < 1.0:
+            x0_23_vector[i] = 0
+            x1_23_a_vector[i] = 0
+            x1_23_b_vector[i] = 0
 
     plt.figure(figsize=GRAPH_SIZE)
     plt.title("Baios for 3")
@@ -54,14 +74,16 @@ if __name__ == '__main__':
     plt.ylim(-4, 4)
     plt.show()
 
-    print(f'Относительная экспериментальная вероятность: {get_experimental_probability(100, 0.5, 0.5, b2_1, b2_2, M1, M2, X1)}')
+    X_to_test = get_dataset(get_normal_vector(2, N * 20), M1, b2_1, N * 20)
+    print(f'Относительная экспериментальная вероятность: {get_experimental_probability(0.5, N)}')
 
     p_max = 0.05
     p = 1.0
     i = 0
     sum = 0
-    while p >= p_max and i < 100:
-        sum += baios_classifier(0.5, 0.5, b2_1, b2_2, M1, M2, np.array([X1[0][i], X1[1][i]]))
+
+    while p >= p_max or i < 200:
+        sum += baios_classifier(0.5, 0.5, b2_1, b2_2, M1, M2, np.array([X_to_test[0][i], X_to_test[1][i]]))
         i += 1
         p = sum / i
     print(f'Объем обучающей выборки: {i}')

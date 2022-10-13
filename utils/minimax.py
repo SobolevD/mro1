@@ -22,7 +22,6 @@ def get_mn_line(shape, b, c, m1, m2):
 
     x0_vector = np.reshape(np.zeros(int(points_count)), (int(points_count), 1))
     x1_a_vector = np.reshape(np.zeros(int(points_count)), (int(points_count), 1))
-    x1_b_vector = np.reshape(np.zeros(int(points_count)), (int(points_count), 1))
 
     counter = 0
     i = -(shape[0]/2.0)

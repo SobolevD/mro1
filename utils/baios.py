@@ -50,11 +50,10 @@ def __get_de(Mj, Ml, Bj, Bl):
 
 
 def __get_f(Mj, Ml, Bj, Bl, pl, pj):
-
     # Слагаемое 1
     Bl_det = np.linalg.det(Bl)
     Bj_det = np.linalg.det(Bj)
-    sum_part1 = np.log(Bl_det/Bj_det)
+    sum_part1 = np.log(Bl_det / Bj_det)
 
     # Слагаемое 2
     sum_part2 = 2 * np.log(pl / pj)
@@ -72,16 +71,15 @@ def __get_f(Mj, Ml, Bj, Bl, pl, pj):
 
 
 def get_baios_line(shape, b1, b2, m1, m2, p):
-
     step = 0.005
-    points_count = shape[0]/step
+    points_count = shape[0] / step
 
     x0_vector = np.reshape(np.zeros(int(points_count)), (int(points_count), 1))
     x1_a_vector = np.reshape(np.zeros(int(points_count)), (int(points_count), 1))
     x1_b_vector = np.reshape(np.zeros(int(points_count)), (int(points_count), 1))
 
     counter = 0
-    i = -(shape[0]/2.0)
+    i = -(shape[0] / 2.0)
     if not np.array_equal(b1, b2):
         while i < shape[1] / 2.0 - step:
             x0_vector[counter] = i
@@ -91,7 +89,7 @@ def get_baios_line(shape, b1, b2, m1, m2, p):
             counter += 1
             i += step
         return x0_vector, x1_a_vector, x1_b_vector
-    while i < shape[1]/2.0 - step:
+    while i < shape[1] / 2.0 - step:
         x0_vector[counter] = i
         x1_vector = get_bayos_lines(b1, b2, m1, m2, p, p, i)
         x1_a_vector[counter] = x1_vector
@@ -121,8 +119,5 @@ def __discriminant_function(P, B, M, X):
     return np.log(P) - np.log(np.sqrt(det_B)) - 0.5 * __mul_3_matrices(x_M_transpose, inv_B, x_M)
 
 
-def get_experimental_probability(experiments_count, p1, p2, b1, b2, M1, M2, X1):
-    sum = 0
-    for i in range(0, experiments_count):
-        sum += baios_classifier(p1, p2, b1, b2, M1, M2, np.array([X1[0][i], X1[1][i]]))
-    return sum / experiments_count
+def get_experimental_probability(p, N):
+    return np.sqrt((1 - p) / (N * p))
