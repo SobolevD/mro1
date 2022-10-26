@@ -9,7 +9,7 @@ from utils.laplas import laplas_function
 VALUE_ONE = 1
 VALUE_ZERO = 0
 
-LETTER_1 = np.array([[0, 1, 0, 0, 0, 0, 1, 0, 0],
+LETTER_C = np.array([[0, 1, 0, 0, 0, 0, 1, 0, 0],
                      [0, 1, 0, 0, 0, 0, 1, 0, 0],
                      [0, 1, 0, 0, 0, 0, 1, 0, 0],
                      [0, 1, 0, 0, 0, 0, 1, 0, 0],
@@ -19,7 +19,7 @@ LETTER_1 = np.array([[0, 1, 0, 0, 0, 0, 1, 0, 0],
                      [0, 1, 1, 1, 1, 1, 1, 1, 1],
                      [0, 0, 0, 0, 0, 0, 0, 0, 1]])
 
-LETTER_2 = np.array([[0, 1, 1, 1, 1, 1, 0, 0, 0],
+LETTER_P = np.array([[0, 1, 1, 1, 1, 1, 0, 0, 0],
                      [0, 1, 0, 0, 0, 0, 1, 0, 0],
                      [0, 1, 0, 0, 0, 0, 0, 1, 0],
                      [0, 1, 0, 0, 0, 0, 0, 1, 0],
@@ -33,31 +33,34 @@ PROBABILITY_CLASS_C = 0.5
 PROBABILITY_CLASS_P = 0.5
 
 
-def process_invert(p_value, src_matrix_value, p_probability_of_change=0.3):
-    if p_value > p_probability_of_change:
-        return src_matrix_value
-    else:
-        return 1 - src_matrix_value
+def invert_value(p, value, p_change=0.3):
+    return value if p > p_change else 1 - value
 
 
-def get_matrix_9x9(letter, p_probability_of_change):
-    matrix_as_vector = letter.flatten()
-    shape = np.shape(letter)
-    random_vector = np.random.uniform(0, 1, shape[0] * shape[1])
-    func = np.vectorize(process_invert)
-    result = func(random_vector, matrix_as_vector, p_probability_of_change)
-    return np.reshape(result, (shape[0], shape[1]))
+def transform_matrix(letter_matrix, p_change=0.3):
+
+    matrix_as_vector = letter_matrix.flatten()
+    letter_shape = np.shape(letter_matrix)
+
+    random_vector_size = letter_shape[0] * letter_shape[1]
+    random_vector = np.random.uniform(0, 1, random_vector_size)
+
+    invert_matrix_values = np.vectorize(invert_value)
+    result = invert_matrix_values(random_vector, matrix_as_vector, p_change)
+
+    return np.reshape(result, letter_shape)
 
 
-def generate_seed_data_for_classes(class_seed, selection_size, p_probability_of_change):
-    shape = np.shape(class_seed)
-    matrix_as_vector = class_seed.flatten()
+def transform_matrices(letter_matrix, selection_size, p_probability_of_change):
+
+    shape = np.shape(letter_matrix)
+    matrix_as_vector = letter_matrix.flatten()
     result = np.zeros((selection_size, shape[0] * shape[1]))
 
-    func = np.vectorize(process_invert)
+    invert_matrix_values = np.vectorize(invert_value)
     for i in range(0, selection_size, 1):
         random_vector = np.random.uniform(0, 1, shape[0] * shape[1])
-        result[i] = func(random_vector, matrix_as_vector, p_probability_of_change)
+        result[i] = invert_matrix_values(random_vector, matrix_as_vector, p_probability_of_change)
         # selection size strings AND 81 columns
     return result
 

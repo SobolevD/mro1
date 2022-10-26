@@ -1,89 +1,79 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 
-from utils.baios import get_baios_line, baios_classifier, get_experimental_probability
-from utils.canvas import draw_for_two_vectors
-from utils.consts import COR_MATRIX, N, M1, M2, GRAPH_SIZE, b2_2, b2_1, b2_3, M3, C
-from utils.laplas import get_p_error
-from utils.minimax import get_mn_line
-from utils.normal import get_normal_vector, get_dataset
-from utils.pearson import get_neuman_pearson_line
+from utils.binary import LETTER_C, LETTER_P, transform_matrix, transform_matrices, \
+    calculate_array_of_condition_probabilities, calculate_binary_SD, calculate_binary_m, calculate_lambda_tilda, \
+    classify_array_of_vectors, PROBABILITY_CLASS_C, PROBABILITY_CLASS_P, calculate_exp_error, \
+    calculate_theoretical_errors
 
 if __name__ == '__main__':
-    # 2
-    normal_vector1 = get_normal_vector(2, N)
-    normal_vector2 = get_normal_vector(2, N)
-    #
-    X1 = get_dataset(normal_vector1, M1, COR_MATRIX, N)
-    X2 = get_dataset(normal_vector2, M2, COR_MATRIX, N)
 
-    y_bs_vector, x_bs_vector = get_baios_line(GRAPH_SIZE, COR_MATRIX, COR_MATRIX, M1, M2, 0.5)
-    y_np_vector, x_np_vector = get_neuman_pearson_line(GRAPH_SIZE, COR_MATRIX, M1, M2, 0.05)
-    y_mn_vector, x_mn_vector = get_mn_line(GRAPH_SIZE, COR_MATRIX, C, M1, M2)
+    result_1 = transform_matrix(LETTER_C, 0.3)
+    result_2 = transform_matrix(LETTER_P, 0.3)
 
-    p_err = get_p_error(M1, M2, COR_MATRIX, C, 0.5, 0.5)
-    print(f'(Task 1) Вероятность ошибочной классификации для : {p_err}')
-    print(f'(Task 1) Суммарная вероятность ошибочной классификации: {np.sum(p_err) / 2.0}')
+    figure = plt.figure(figsize=(10, 10))
+    plt.title("Letters")
+    sub_figure_1 = figure.add_subplot(2, 2, 1)
+    plt.imshow(1 - LETTER_C, cmap='gray')
+    sub_figure_1.set_title("Буква П")
 
-    draw_for_two_vectors("Baios for 2", GRAPH_SIZE, X1, X2, x_bs_vector, y_bs_vector)
-    draw_for_two_vectors("Neuman Pearson", GRAPH_SIZE, X1, X2, x_np_vector, y_np_vector)
-    draw_for_two_vectors("Minimax", GRAPH_SIZE, X1, X2, x_mn_vector, y_mn_vector)
+    sub_figure_2 = figure.add_subplot(2, 2, 2)
+    plt.imshow(1 - result_1, cmap='gray')
+    sub_figure_2.set_title("Буква П после обработки")
 
-    # 3
+    sub_figure_3 = figure.add_subplot(2, 2, 3)
+    plt.imshow(1 - LETTER_P, cmap='gray')
+    sub_figure_3.set_title("Буква Б")
 
-    X2_1 = get_dataset(get_normal_vector(2, N), M1, b2_1, N)
-    X2_2 = get_dataset(get_normal_vector(2, N), M2, b2_2, N)
-    X2_3 = get_dataset(get_normal_vector(2, N), M3, b2_3, N)
-
-    x0_12_vector, x1_12_a_vector, x1_12_b_vector = get_baios_line(GRAPH_SIZE, b2_1, b2_2, M1, M2, 1.0 / 3.0)
-
-    for i in range (0, 1999):
-        if x1_12_b_vector[i] > 1.0:
-            x0_12_vector[i] = 0
-            x1_12_a_vector[i] = 0
-            x1_12_b_vector[i] = 0
-
-    x0_13_vector, x1_13_a_vector, x1_13_b_vector = get_baios_line(GRAPH_SIZE, b2_1, b2_3, M1, M3, 1.0 / 3.0)
-
-    for i in range (0, 1999):
-        if x1_13_a_vector[i] > 1.0:
-            x0_13_vector[i] = 0
-            x1_13_a_vector[i] = 0
-            x1_13_b_vector[i] = 0
-
-    x0_23_vector, x1_23_a_vector, x1_23_b_vector = get_baios_line(GRAPH_SIZE, b2_2, b2_3, M2, M3, 1.0 / 3.0)
-
-    for i in range (0, 1999):
-        if x1_23_a_vector[i] < 1.0:
-            x0_23_vector[i] = 0
-            x1_23_a_vector[i] = 0
-            x1_23_b_vector[i] = 0
-
-    plt.figure(figsize=GRAPH_SIZE)
-    plt.title("Baios for 3")
-    plt.scatter(X2_1[0], X2_1[1], c='black')
-    plt.scatter(X2_2[0], X2_2[1], c='pink')
-    plt.scatter(X2_3[0], X2_3[1], c='red')
-    plt.scatter(x0_12_vector, x1_12_a_vector, c='green')
-    plt.scatter(x0_12_vector, x1_12_b_vector, c='blue')
-    plt.scatter(x0_13_vector, x1_13_a_vector, c='orange')
-    plt.scatter(x0_13_vector, x1_13_b_vector, c='purple')
-    plt.scatter(x0_23_vector, x1_23_a_vector, c='lime')
-    plt.scatter(x0_23_vector, x1_23_b_vector, c='yellow')
-    plt.xlim(-4, 4)
-    plt.ylim(-4, 4)
+    sub_figure_4 = figure.add_subplot(2, 2, 4)
+    plt.imshow(1 - result_2, cmap='gray')
+    sub_figure_4.set_title("Буква Б после обработки")
     plt.show()
 
-    X_to_test = get_dataset(get_normal_vector(2, N * 20), M1, b2_1, N * 20)
-    print(f'Относительная экспериментальная вероятность: {get_experimental_probability(0.5, N)}')
+    test_data_class_p = transform_matrices(LETTER_C, 200, 0.3)
+    test_data_class_b = transform_matrices(LETTER_P, 200, 0.3)
 
-    p_max = 0.05
-    p = 1.0
-    i = 0
-    sum = 0
+    cond_prob_array_class_p = calculate_array_of_condition_probabilities(test_data_class_p)
+    cond_prob_array_class_b = calculate_array_of_condition_probabilities(test_data_class_b)
 
-    while p >= p_max or i < 200:
-        sum += baios_classifier(0.5, 0.5, b2_1, b2_2, M1, M2, np.array([X_to_test[0][i], X_to_test[1][i]]))
-        i += 1
-        p = sum / i
-    print(f'Объем обучающей выборки: {i}')
+    sd0, sd1 = calculate_binary_SD(cond_prob_array_class_p, cond_prob_array_class_b)
+    m0, m1 = calculate_binary_m(cond_prob_array_class_p, cond_prob_array_class_b)
+    print("ME 0", m0)
+    print("ME 1", m1)
+    print("SD 0", sd0)
+    print("SD 1", sd1)
+    fig = plt.figure
+    plt.title("X0 blue and X1 red")
+    x0 = np.arange(-25, 25, 0.001)
+    plt.plot(x0, norm.pdf(x0, m0, sd1), color='blue', linewidth=3)
+
+    x1 = np.arange(-25, 25, 0.001)
+    plt.plot(x1, norm.pdf(x1, m1, sd1), color='red', linewidth=3)
+    lambda_tilda = calculate_lambda_tilda(0.5, 0.5, cond_prob_array_class_p, cond_prob_array_class_b)
+    array_lambda_tilda = np.zeros(4) + lambda_tilda
+    plt.plot(array_lambda_tilda, np.arange(0, 0.2, 0.05), color='black')
+    print("lambda_tilda: ", lambda_tilda)
+    plt.show()
+
+    classified_array_class_p = classify_array_of_vectors(test_data_class_p, PROBABILITY_CLASS_C,
+                                                                         PROBABILITY_CLASS_P,
+                                                                         cond_prob_array_class_p,
+                                                                         cond_prob_array_class_b)
+
+    classified_array_class_b = classify_array_of_vectors(test_data_class_b, PROBABILITY_CLASS_C,
+                                                                         PROBABILITY_CLASS_P,
+                                                                         cond_prob_array_class_b,
+                                                                         cond_prob_array_class_p)
+
+    class_p_exp_error = calculate_exp_error(classified_array_class_p)
+    class_b_exp_error = calculate_exp_error(classified_array_class_b)
+
+    print("Экспериментальная ошибка классификации для класса П:", class_p_exp_error)
+    print("Экспериментальная ошибка классификации для класса Б:", class_b_exp_error)
+
+    theoretical_error = calculate_theoretical_errors(0.5, 0.5, cond_prob_array_class_p,
+                                                                     cond_prob_array_class_b)
+
+    print("Теоритическая ошибка классификации для класса П:", theoretical_error[0])
+    print("Теоритическая ошибка классификации для класса Б:", theoretical_error[1])
