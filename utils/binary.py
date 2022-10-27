@@ -126,7 +126,7 @@ def calculate_exp_error(classified_array):
     return float(np.sum(classified_array) / classified_array.size)
 
 
-def calculate_theoretical_errors(p0, p1, cond_probs_array_0, cond_probs_array_1):
+def calc_theoretical_error(p0, p1, cond_probs_array_0, cond_probs_array_1):
     sm_lambda   = calc_small_lambda(p0, p1, cond_probs_array_0, cond_probs_array_1)
 
     m0, m1      = calc_M(cond_probs_array_0, cond_probs_array_1)
