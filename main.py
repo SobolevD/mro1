@@ -4,7 +4,7 @@ from scipy.stats import norm
 
 from utils.binary import LETTER_C, LETTER_P, transform_matrices, \
     calc_condition_probs, calc_binarySD, calc_M, calc_small_lambda, \
-    classify_vectors_array, PROBABILITY_CLASS_C, PROBABILITY_CLASS_P, calculate_exp_error, \
+    classify_vectors_array, calculate_exp_error, \
     calc_theoretical_error
 
 if __name__ == '__main__':
@@ -62,13 +62,13 @@ if __name__ == '__main__':
     print("lambda_tilda: ", lambda_tilda)
     plt.show()
 
-    classified_array_class_c = classify_vectors_array(test_data_class_c, PROBABILITY_CLASS_C,
-                                                      PROBABILITY_CLASS_P,
+    classified_array_class_c = classify_vectors_array(test_data_class_c,
+                                                      0.5, 0.5,
                                                       cond_prob_array_class_c,
                                                       cond_prob_array_class_p)
 
-    classified_array_class_p = classify_vectors_array(test_data_class_p, PROBABILITY_CLASS_C,
-                                                      PROBABILITY_CLASS_P,
+    classified_array_class_p = classify_vectors_array(test_data_class_p,
+                                                      0.5, 0.5,
                                                       cond_prob_array_class_p,
                                                       cond_prob_array_class_c)
 
