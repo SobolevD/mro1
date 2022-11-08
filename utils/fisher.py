@@ -33,5 +33,5 @@ def get_X0(x1, wN, W):
 
 
 def get_linear_border(W, X1, wN):
-    func = np.vectorize(get_X0, excluded=['W'])
-    return func(X1, wN, W=W)
+    func = np.vectorize(get_X0, excluded=['W', 'wN'])
+    return func(X1, wN=wN, W=W)
