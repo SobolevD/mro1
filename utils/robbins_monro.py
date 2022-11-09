@@ -65,7 +65,7 @@ def __get_X_R(X0, X1):
     X, R = shuffle(X, R)
     return X, R
 
-def draw_robbins_monro_line(X0, X1, derivative_func):
+def draw_robbins_monro_line(X0, X1, derivative_func, title_cor):
 
     X, R = __get_X_R(X0, X1)
 
@@ -80,9 +80,9 @@ def draw_robbins_monro_line(X0, X1, derivative_func):
         plt.plot(rm_X0, rm_X1, color=colors[i], label=(labels[i] + '; N = ' + str(i)))
 
     if derivative_func == nsko:
-        plt.title('Robbins monro: NSKO')
+        plt.title('Robbins monro: NSKO.' + title_cor)
     else:
-        plt.title('Robbins monro: AKP')
+        plt.title('Robbins monro: AKP.' + title_cor)
 
     plt.legend()
     plt.xlim((-2, 5))
@@ -91,7 +91,7 @@ def draw_robbins_monro_line(X0, X1, derivative_func):
     plt.show()
 
 
-def draw_beta_dependency(X0, X1, derivative_func):
+def draw_beta_dependency(X0, X1, derivative_func, title_cor):
 
     X, R = __get_X_R(X0, X1)
 
@@ -110,9 +110,9 @@ def draw_beta_dependency(X0, X1, derivative_func):
         beta_intermediate += 0.1
         num += 1
     if derivative_func == nsko:
-        plt.title('Robbins monro: NSKO')
+        plt.title('Robbins monro: NSKO.' + title_cor)
     else:
-        plt.title('Robbins monro: AKP')
+        plt.title('Robbins monro: AKP.' + title_cor)
 
     plt.legend()
     plt.xlim((-2, 5))
@@ -121,7 +121,7 @@ def draw_beta_dependency(X0, X1, derivative_func):
     plt.show()
 
 
-def draw_W_dependency(X0, X1, derivative_func):
+def draw_W_dependency(X0, X1, derivative_func, title_cor):
 
     X, R = __get_X_R(X0, X1)
 
@@ -143,9 +143,9 @@ def draw_W_dependency(X0, X1, derivative_func):
         W_start += 1
         num += 1
     if derivative_func == nsko:
-        plt.title('Robbins monro: NSKO')
+        plt.title('Robbins monro: NSKO.' + title_cor)
     else:
-        plt.title('Robbins monro: AKP')
+        plt.title('Robbins monro: AKP.' + title_cor)
 
     plt.legend()
     plt.xlim((-2, 5))
