@@ -91,12 +91,6 @@ if __name__ == '__main__':
     sko_W   = get_W_full(fisher_W, fisher_wN)
     SKO_X0  = glb(sko_W, fisher_X1)
 
-    x_1_bayes = np.linspace(-3, 3, 400)
-    x_00_bayes = np.zeros(len(X0[0]))
-    x_01_bayes = np.zeros(len(X0[0]))
-    for i in range(0, len(X0[0])):
-        x_00_bayes[i], x_01_bayes[i] = get_bayos_lines(B0, B1, M0, M1, 0.5, 0.5, x_1_bayes[i])
-
     plt.scatter(SKO_X0, fisher_X1)
     plt.scatter(fisher_X0, fisher_X1)
     plt.scatter(X0[0], X0[1])
@@ -117,11 +111,6 @@ if __name__ == '__main__':
     sko_W   = get_W_full(fisher_W, fisher_wN)
     SKO_X0  = glb(sko_W, fisher_X1)
 
-    x_1_bayes = np.linspace(-3, 3, 400)
-    x_0_bayes = np.zeros(len(X0[0]))
-    for i in range(0, len(X0[0])):
-        x_0_bayes[i] = get_bayos_lines(B0, B0, M0, M1, 0.5, 0.5, x_1_bayes[i])
-
     plt.scatter(SKO_X0, fisher_X1_e)
     plt.scatter(fisher_X0_e, fisher_X1_e)
     plt.scatter(X0_e[0], X0_e[1])
@@ -140,8 +129,8 @@ if __name__ == '__main__':
     # условий и выбора последовательности корректирующих коэффициентов. Сравнить качество полученного
     # классификатора с байесовским классификатором.
 
-    draw_robbins_monro_line(X0, X1, akp, 'Разные кор.матрицы')
-    draw_robbins_monro_line(X0_e, X1_e, akp, 'Равные кор.матрицы')
+    draw_robbins_monro_line(X0, X1, akp, 'Разные кор.матрицы', [x_01_bayes, x_1_bayes])
+    draw_robbins_monro_line(X0_e, X1_e, akp, 'Равные кор.матрицы', [x_0_bayes, x_1_bayes])
 
     draw_robbins_monro_line(X0, X1, nsko, 'Разные кор.матрицы')
     draw_robbins_monro_line(X0_e, X1_e, nsko, 'Равные кор.матрицы')

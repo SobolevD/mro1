@@ -65,7 +65,7 @@ def __get_X_R(X0, X1):
     X, R = shuffle(X, R)
     return X, R
 
-def draw_robbins_monro_line(X0, X1, derivative_func, title_cor):
+def draw_robbins_monro_line(X0, X1, derivative_func, title_cor, bayes_coords = None):
 
     X, R = __get_X_R(X0, X1)
 
@@ -88,6 +88,10 @@ def draw_robbins_monro_line(X0, X1, derivative_func, title_cor):
     plt.xlim((-2, 5))
     plt.scatter(X0[0], X0[1])
     plt.scatter(X1[0], X1[1])
+
+    if bayes_coords is not None:
+        plt.scatter(bayes_coords[0], bayes_coords[1])
+
     plt.show()
 
 
