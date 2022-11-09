@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
+from utils.errors import classification_error
+
 
 def get_X0(x1, W):
     return -(W[2] + W[1] * x1) / W[0]
@@ -65,13 +67,14 @@ def __get_X_R(X0, X1):
     X, R = shuffle(X, R)
     return X, R
 
-def draw_robbins_monro_line(X0, X1, derivative_func, title_cor, bayes_coords = None):
+def draw_robbins_monro_line(X0, X1, derivative_func, title_cor, bayes_coords = None, dif_cor_matrix = True):
 
     X, R = __get_X_R(X0, X1)
 
     colors = {500: 'blue', 600: 'green', 700: 'black', 800: 'red'}
     labels = {500: 'Step 1', 600: 'Step 2', 700: 'Step 3', 800: 'Step 4'}
 
+    W = ''
     for i in range(500, 801, 100):
         W = get_W_RM(X, R, alpha_k, derivative_func, i)
         rm_X1 = np.linspace(-4, 4, 100)
@@ -81,8 +84,16 @@ def draw_robbins_monro_line(X0, X1, derivative_func, title_cor, bayes_coords = N
 
     if derivative_func == nsko:
         plt.title('Robbins monro: NSKO.' + title_cor)
+        if dif_cor_matrix:
+            print(f'Robbins monro: NSKO. Разные кор.матрицы. Ошибка: {classification_error(X0, W, 0)}')
+        else:
+            print(f'Robbins monro: NSKO. Равные кор.матрицы. Ошибка: {classification_error(X0, W, 0)}')
     else:
         plt.title('Robbins monro: AKP.' + title_cor)
+        if dif_cor_matrix:
+            print(f'Robbins monro: AKP. Разные кор.матрицы. Ошибка: {classification_error(X0, W, 0)}')
+        else:
+            print(f'Robbins monro: AKP. Равные кор.матрицы. Ошибка: {classification_error(X0, W, 0)}')
 
     plt.legend()
     plt.xlim((-2, 5))

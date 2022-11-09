@@ -3,12 +3,14 @@ import numpy as np
 
 from utils.baios import get_bayos_lines
 from utils.consts import N, M0, M1, B0, B1
+from utils.errors import classification_error
 from utils.fisher import get_W, get_wN, get_sigma, get_linear_border
 from utils.normal import get_normal_vector, get_dataset_l, get_dataset_le
 from utils.robbins_monro import akp, nsko, draw_robbins_monro_line, draw_beta_dependency, \
     draw_W_dependency
 from utils.sko_minimize import get_linear_border as glb
 from utils.sko_minimize import get_z, get_z_neg, get_W_full
+
 
 if __name__ == '__main__':
 
@@ -53,6 +55,8 @@ if __name__ == '__main__':
     plt.title("Критерий Фишера. Разные кор.матрицы")
     plt.show()
 
+    print(f'Критерий Фишера. Разные кор.матрицы. Ошибка: {classification_error(X0, np.append(fisher_W, fisher_wN), 0)}')
+
     # =============================
     # Равные корреляционные матрицы
     # =============================
@@ -79,6 +83,8 @@ if __name__ == '__main__':
     plt.title("Критерий Фишера. Равные кор.матрицы")
     plt.show()
 
+    print(f'Критерий Фишера. Равные кор.матрицы. Ошибка: {classification_error(X0_e, np.append(fisher_W, fisher_wN), 0)}')
+
     # 2. Построить линейный классификатор, минимизирующий среднеквадратичную ошибку, для классов 0 и 1
     # двумерных нормально распределенных векторов признаков для случаев равных и неравных корреляционных матриц.
     # Сравнить качество полученного классификатора с байесовским классификатором и классификатором Фишера.
@@ -103,6 +109,8 @@ if __name__ == '__main__':
     plt.title("Минимизация ско. Разные кор.матрицы")
     plt.show()
 
+    print(f'Минимизация ско. Разные кор.матрицы. Ошибка: {classification_error(X0_e, sko_W, 0)}')
+
     # =============================
     # Равные корреляционные матрицы
     # =============================
@@ -122,6 +130,7 @@ if __name__ == '__main__':
     plt.title("Минимизация ско. Равные кор.матрицы")
     plt.show()
 
+    print(f'Минимизация ско. Равные кор.матрицы. Ошибка: {classification_error(X0_e, sko_W, 0)}')
 
     # 3. Построить линейный классификатор, основанный на процедуре Роббинса-Монро, для классов 0 и 1 двумерных
     # нормально распределенных векторов признаков для случаев равных и неравных корреляционных матриц. Исследовать
