@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from utils.baios import get_bayos_lines
 from utils.consts import N, M0, M1, B0, B1
 from utils.fisher import get_W, get_wN, get_sigma, get_linear_border
 from utils.normal import get_normal_vector, get_dataset_l, get_dataset_le
@@ -35,9 +36,19 @@ if __name__ == '__main__':
     fisher_X1   = np.arange(-3, 3, 0.01)
     fisher_X0   = get_linear_border(fisher_W, fisher_X1, fisher_wN)
 
+    x_1_bayes = np.linspace(-3, 3, 400)
+    x_00_bayes = np.zeros(len(X0[0]))
+    x_01_bayes = np.zeros(len(X0[0]))
+    for i in range(0, len(X0[0])):
+        x_00_bayes[i], x_01_bayes[i] = get_bayos_lines(B0, B1, M0, M1, 0.5, 0.5, x_1_bayes[i])
+
     plt.scatter(fisher_X0, fisher_X1)
     plt.scatter(X0[0], X0[1])
     plt.scatter(X1[0], X1[1])
+
+    plt.scatter(x_00_bayes, x_1_bayes)
+    plt.scatter(x_01_bayes, x_1_bayes)
+
     plt.xlim((-2, 5))
     plt.title("Критерий Фишера. Разные кор.матрицы")
     plt.show()
@@ -53,9 +64,17 @@ if __name__ == '__main__':
     fisher_X1   = np.arange(-3, 3, 0.01)
     fisher_X0   = get_linear_border(fisher_W, fisher_X1, fisher_wN)
 
+    x_1_bayes = np.linspace(-3, 3, 400)
+    x_0_bayes = np.zeros(len(X0[0]))
+    for i in range(0, len(X0[0])):
+        x_0_bayes[i] = get_bayos_lines(B0, B0, M0, M1, 0.5, 0.5, x_1_bayes[i])
+
     plt.scatter(fisher_X0, fisher_X1)
     plt.scatter(X0_e[0], X0_e[1])
     plt.scatter(X1_e[0], X1_e[1])
+
+    plt.scatter(x_0_bayes, x_1_bayes)
+
     plt.xlim((-2, 5))
     plt.title("Критерий Фишера. Равные кор.матрицы")
     plt.show()
