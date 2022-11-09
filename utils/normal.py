@@ -21,3 +21,10 @@ def get_dataset(vector, M, cor_matrix, size):
     X = [A[0] + M[0],
          A[1] + M[1]]
     return np.reshape(X, (2, size))
+
+
+def get_dataset_l(vector, M, cor_matrix, size):
+    if M[0] == 1 and M[1] == -1:
+        return np.load('X0.npy')
+    if M[0] == 2 and M[1] == 2:
+        return np.load('X1.npy')
