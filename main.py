@@ -8,7 +8,7 @@ from utils.fisher import get_W, get_wN, get_sigma, get_linear_border
 from utils.normal import get_normal_vector, get_dataset_l, get_dataset_le
 from utils.robbins_monro import akp, nsko, draw_robbins_monro_line, draw_beta_dependency, \
     draw_W_dependency
-from utils.sko_minimize import get_linear_border as glb
+from utils.sko_minimize import get_linear_border as glb, get_W_sko, get_sko_training_dataset, classification_error_sko
 from utils.sko_minimize import get_z, get_z_neg, get_W_full
 
 
@@ -92,37 +92,33 @@ if __name__ == '__main__':
     # =============================
     # Разные корреляционные матрицы
     # =============================
-    z       = get_z(X0)
-    z_neg   = get_z_neg(X0)
-    sko_W   = get_W_full(fisher_W, fisher_wN)
-    SKO_X0  = glb(sko_W, fisher_X1)
-
-    plt.scatter(SKO_X0, fisher_X1)
-    plt.scatter(fisher_X0, fisher_X1)
-    plt.scatter(X0[0], X0[1])
-    plt.scatter(X1[0], X1[1])
+    sko_W = get_W_sko(X1.T, X0.T)
+    sko_X1 = np.arange(-6, 6, 0.01)
+    sko_X0 = get_linear_border([sko_W[0], sko_W[1]], sko_X1, sko_W[2])
 
     plt.scatter(x_00_bayes, x_1_bayes)
     plt.scatter(x_01_bayes, x_1_bayes)
+    plt.scatter(sko_X1, sko_X0)
+    plt.scatter(X0.T[:, 0], X0.T[:, 1])
+    plt.scatter(X1.T[:, 0], X1.T[:, 1])
 
     plt.xlim((-2, 5))
     plt.title("Минимизация ско. Разные кор.матрицы")
     plt.show()
 
-    print(f'Минимизация ско. Разные кор.матрицы. Ошибка: {classification_error(X0_e, sko_W, 0)}')
+    #print(f'Минимизация ско. Разные кор.матрицы. Ошибка: {classification_error_sko(X0_e, sko_W, 0)}')
 
     # =============================
     # Равные корреляционные матрицы
     # =============================
-    z       = get_z(X0_e)
-    z_neg   = get_z_neg(X0_e)
-    sko_W   = get_W_full(fisher_W, fisher_wN)
-    SKO_X0  = glb(sko_W, fisher_X1)
+    sko_W = get_W_sko(X1_e.T, X0_e.T)
+    sko_X1_e = np.arange(-6, 6, 0.01)
+    sko_X0_e = get_linear_border([sko_W[0], sko_W[1]], sko_X1, sko_W[2])
 
-    plt.scatter(SKO_X0, fisher_X1_e)
     plt.scatter(fisher_X0_e, fisher_X1_e)
-    plt.scatter(X0_e[0], X0_e[1])
-    plt.scatter(X1_e[0], X1_e[1])
+    plt.scatter(sko_X1, sko_X0)
+    plt.scatter(X0_e.T[:, 0], X0_e.T[:, 1])
+    plt.scatter(X1_e.T[:, 0], X1_e.T[:, 1])
 
     plt.scatter(x_0_bayes, x_1_bayes)
 
@@ -130,7 +126,7 @@ if __name__ == '__main__':
     plt.title("Минимизация ско. Равные кор.матрицы")
     plt.show()
 
-    print(f'Минимизация ско. Равные кор.матрицы. Ошибка: {classification_error(X0_e, sko_W, 0)}')
+    #print(f'Минимизация ско. Равные кор.матрицы. Ошибка: {classification_error(X0_e, sko_W, 0)}')
 
     # 3. Построить линейный классификатор, основанный на процедуре Роббинса-Монро, для классов 0 и 1 двумерных
     # нормально распределенных векторов признаков для случаев равных и неравных корреляционных матриц. Исследовать
