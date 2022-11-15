@@ -27,28 +27,31 @@ def get_linear_border(W, X1):
     return func(X1, W[2], W=W)
 
 
-def get_sko_training_dataset(X1, X0):
-    z = np.concatenate(
-        (X1, np.full((1, len(X1)), 1).T), axis=1
-    )
+def get_W__sko(class0, class1):
+    size1 = np.shape(class1)
+    size0 = np.shape(class0)
 
-    z_neg = np.concatenate(
-        (X0 * -1, np.full((1, len(X0)), -1).T), axis=1
-    )
+    z1Size = ((size1[0] + 1), size1[1])
+    z0Size = ((size0[0] + 1), size0[1])
 
-    X = np.concatenate((z, z_neg))
-    corr_values = np.concatenate(
-        (np.full((1, len(z)), 1).T, np.full((1, len(z_neg)), -1).T)
-    )
+    z1 = np.ones(z1Size)
+    z0 = np.ones(z0Size)
 
-    return X, corr_values
+    z1[0:size1[0], 0:size1[1]] = class1
+    z0[0:size0[0], 0:size0[1]] = class0
+    z0 = -1 * z0
 
+    resSize = (3, (size1[1] + size0[1]))
+    z = np.ones(resSize)
+    z[0:3, 0:z1Size[1]] = z1
+    z[0:3, z1Size[1]:resSize[1]] = z0
 
-def get_W_sko(X1, X0):
-    X, corr_values = get_sko_training_dataset(
-        X1, X0
-    )
-    return (np.linalg.inv(X@ X.T) @ X).T @ corr_values
+    tmp = np.linalg.inv(np.matmul(z, np.transpose(z)))
+
+    R = np.ones((resSize[1], 1))
+    W = np.matmul(np.matmul(tmp, z), R)
+
+    return np.reshape(W, (3,))
 
 
 def classification_error_sko(dataset, W, class_id):

@@ -8,9 +8,7 @@ from utils.fisher import get_W, get_wN, get_sigma, get_linear_border
 from utils.normal import get_normal_vector, get_dataset_l, get_dataset_le
 from utils.robbins_monro import akp, nsko, draw_robbins_monro_line, draw_beta_dependency, \
     draw_W_dependency
-from utils.sko_minimize import get_linear_border as glb, get_W_sko, get_sko_training_dataset, classification_error_sko
-from utils.sko_minimize import get_z, get_z_neg, get_W_full
-
+from utils.sko_minimize import get_W_sko, get_W__sko
 
 if __name__ == '__main__':
 
@@ -55,7 +53,7 @@ if __name__ == '__main__':
     plt.title("Критерий Фишера. Разные кор.матрицы")
     plt.show()
 
-    print(f'Критерий Фишера. Разные кор.матрицы. Ошибка: {classification_error(X0, np.append(fisher_W, fisher_wN), 0)}')
+    #print(f'Критерий Фишера. Разные кор.матрицы. Ошибка: {classification_error(X0, np.append(fisher_W, fisher_wN), 0)}')
 
     # =============================
     # Равные корреляционные матрицы
@@ -92,17 +90,18 @@ if __name__ == '__main__':
     # =============================
     # Разные корреляционные матрицы
     # =============================
-    sko_W = get_W_sko(X1.T, X0.T)
+    sko_W = get_W__sko(X0, X1)
     sko_X1 = np.arange(-6, 6, 0.01)
     sko_X0 = get_linear_border([sko_W[0], sko_W[1]], sko_X1, sko_W[2])
 
     plt.scatter(x_00_bayes, x_1_bayes)
     plt.scatter(x_01_bayes, x_1_bayes)
-    plt.scatter(sko_X1, sko_X0)
-    plt.scatter(X0.T[:, 0], X0.T[:, 1])
-    plt.scatter(X1.T[:, 0], X1.T[:, 1])
+    plt.plot(sko_X0, sko_X1)
+    plt.scatter(X0[0], X0[1])
+    plt.scatter(X1[0], X1[1])
 
     plt.xlim((-2, 5))
+    plt.ylim((-5, 5))
     plt.title("Минимизация ско. Разные кор.матрицы")
     plt.show()
 
@@ -111,12 +110,12 @@ if __name__ == '__main__':
     # =============================
     # Равные корреляционные матрицы
     # =============================
-    sko_W = get_W_sko(X1_e.T, X0_e.T)
+    sko_W = get_W__sko(X0, X1)
     sko_X1_e = np.arange(-6, 6, 0.01)
     sko_X0_e = get_linear_border([sko_W[0], sko_W[1]], sko_X1, sko_W[2])
 
     plt.scatter(fisher_X0_e, fisher_X1_e)
-    plt.scatter(sko_X1, sko_X0)
+    plt.plot(sko_X0, sko_X1)
     plt.scatter(X0_e.T[:, 0], X0_e.T[:, 1])
     plt.scatter(X1_e.T[:, 0], X1_e.T[:, 1])
 
