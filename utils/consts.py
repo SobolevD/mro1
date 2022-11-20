@@ -1,6 +1,6 @@
 import numpy as np
 
-N = 400
+N = 100
 MATRICES_COUNT = 20
 GRAPH_SIZE = (10, 10)
 

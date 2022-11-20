@@ -1,155 +1,175 @@
-import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 
-from utils.baios import get_bayos_lines
 from utils.consts import N, M0, M1, B0, B1
-from utils.errors import classification_error
-from utils.fisher import get_W, get_wN, get_sigma, get_linear_border
-from utils.normal import get_normal_vector, get_dataset_l, get_dataset_le
-from utils.robbins_monro import akp, nsko, draw_robbins_monro_line, draw_beta_dependency, \
-    draw_W_dependency
-from utils.sko_minimize import get_W_sko, get_W__sko
+from utils.normal import get_normal_vector, get_dataset
+from qpsolvers import solve_qp
+from sklearn.svm import SVC, LinearSVC
+import cvxopt
+
+def expand(x: np.array, value):
+    return np.append(x, np.array([[value]]), axis=0)
+
+
+def get_train_dataset(dataset1, dataset2):
+    N = dataset1.shape[2] + dataset2.shape[2]  # 400 + 400 = 800
+    train_dataset = []
+
+    for i in range(N // 2):
+        train_dataset.append(dataset1[:, :, i])
+        # метка класса для функции r
+        train_dataset[i * 2] = expand(train_dataset[i * 2], -1)
+
+        train_dataset.append(dataset2[:, :, i])
+        # метка класса для функции r
+        train_dataset[i * 2 + 1] = expand(train_dataset[i * 2 + 1], 1)
+
+    return np.array(train_dataset)
+
+
+# ================================================================
+
+def get_P(dataset, N):
+    P = np.ndarray(shape=(N, N))
+    for i in range(N):
+        for j in range(N):
+            P[i, j] = np.matmul(dataset[j, :-1, :].T * r(dataset[j, :, :]),
+                                dataset[i, :-1, :] * r(dataset[i, :, :]))
+    return P
+
+
+def r(x: np.array):
+    return x[-1][0]
+
+def get_A(dataset, N):
+    A = np.zeros((N,))
+    for j in range(N):
+        A[j] = r(dataset[j])
+    return A
+
+
+def linear_discriminant(z: np.array, W: np.array) -> np.array:
+    return np.matmul(W.T, z)
+
+def linear_classificator(z: np.array, W: np.array):
+    return 1 if linear_discriminant(z, W) > 0 else 0
+
+def classification_error(dataset, W, class_id):
+    errors = 0  # показывает число неверно определенных элементов
+    N = dataset.shape[-1]
+
+    for i in range(N):
+        z = expand(dataset[:, :, i], 1)
+        if linear_classificator(z, W) != class_id:
+            errors += 1
+
+    return errors / N  # ошибка первого рода
+
+
+def linear_border(y: np.array, W: np.array):
+    a = W[0]
+    b = W[1]
+    c = W[2]
+
+    if a == 0.:
+        return 0
+    else:
+        return (-b * y - c) / a
+
+def task2(dataset1, dataset2):
+
+    N = dataset1.shape[2] + dataset2.shape[2] # 400 + 400 = 800
+
+    # подготовка обучающей выборки
+    dataset = get_train_dataset(dataset1, dataset2)
+
+    # параметры для решения задачи квадратичного программирования
+    P = get_P(dataset, N)
+    q = np.full((N, 1), -1, dtype=np.double)
+    G = np.eye(N) * -1
+    h = np.zeros((N,))
+    A = get_A(dataset, N)
+    b = np.zeros(1)
+    eps = 1e-04
+
+    # получаем вектор двойственных коэффициентов
+    _lambda = solve_qp(P, q, G, h, A, b, solver='cvxopt')
+
+    # опорные вектора для метода solve_qp
+    support_vectors_positions = _lambda > eps
+    support_vectors = dataset[support_vectors_positions, :-1, 0]
+    support_vectors_classes = dataset[support_vectors_positions, -1, 0]
+    red_support_vectors = support_vectors[support_vectors_classes == -1]
+    green_support_vectors = support_vectors[support_vectors_classes == 1]
+
+    # находим весовые коэффициенты из выражения через двойственные коэффициенты
+    # и пороговое значение через весовые коэффициенты и опорные вектора
+    W = np.matmul((_lambda * A)[support_vectors_positions].T, support_vectors).reshape(2, 1)
+    w_N = np.mean(support_vectors_classes - np.matmul(W.T, support_vectors.T))
+    W = expand(W, w_N)
+
+    # обучение модели SVC (kernel=linear)
+    svc_clf = SVC(C=(np.max(_lambda) + eps), kernel='linear')
+    svc_clf.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
+
+    # опорные вектора для метода SVC
+    support_vectors_svc = svc_clf.support_vectors_
+    support_vectors_svc_indices = svc_clf.support_
+    support_vectors_svc_classes = dataset[support_vectors_svc_indices, -1, 0]
+    red_support_vectors_svc = support_vectors_svc[support_vectors_svc_classes == -1]
+    green_support_vectors_svc = support_vectors_svc[support_vectors_svc_classes == 1]
+
+    # весовые коэффициенты и пороговое значение для модели SVC
+    W_svc_clf = svc_clf.coef_.T
+    w_N_svc_clf = svc_clf.intercept_[0]
+    W_svc_clf = expand(W_svc_clf, w_N_svc_clf)
+
+    # обучение модели LinearSVC
+    linear_svc_clf = LinearSVC(C=(np.max(_lambda) + eps))
+    linear_svc_clf.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
+
+    # весовые коэффициенты и пороговое значение для модели LinearSVC
+    W_linear_svc_clf = linear_svc_clf.coef_.T
+    w_N_linear_svc_clf = linear_svc_clf.intercept_[0]
+    W_linear_svc_clf = expand(W_linear_svc_clf, w_N_linear_svc_clf)
+
+    # выводим весовые коэффициенты, полученные для каждого метода
+    print(f"W:\n{W}\n"
+          f"W_svc_clf:\n{W_svc_clf}\n"
+          f"W_linear_svc_clf:\n{W_linear_svc_clf}\n")
+
+    # строим разделяющую полосу и разделяющую гиперплоскость
+    y = np.arange(-4, 4, 0.1)
+    x = linear_border(y, W)
+    x_svc_clf = linear_border(y, W_svc_clf)
+    x_linear_svc_clf = linear_border(y, W_linear_svc_clf)
+
+    # plt.plot(f"solve_qp (cvxopt)", dataset1, dataset2, [x, x + 1 / W[0], x - 1 / W[0]], [y, y, y],
+    #      ['black', 'green', 'red'], ['', '', ''])
+    # plt.scatter(red_support_vectors[:, 0], red_support_vectors[:, 1], color='red')
+    # plt.scatter(green_support_vectors[:, 0], green_support_vectors[:, 1], color='green')
+    #
+    # plt.plot(f"SVC(kernel=linear)", dataset1, dataset2,
+    #      [x_svc_clf, x_svc_clf + 1 / W_svc_clf[0], x_svc_clf - 1 / W_svc_clf[0]], [y, y, y],
+    #      ['black', 'green', 'red'], ['', '', ''])
+    # plt.scatter(red_support_vectors_svc[:, 0], red_support_vectors_svc[:, 1], color='red')
+    # plt.scatter(green_support_vectors_svc[:, 0], green_support_vectors_svc[:, 1], color='green')
+    #
+    # plt.plot(f"LinearSVC", dataset1, dataset2,
+    #      [x_linear_svc_clf, x_linear_svc_clf + 1 / W_linear_svc_clf[0], x_linear_svc_clf - 1 / W_linear_svc_clf[0]],
+    #      [y, y, y],
+    #      ['black', 'green', 'red'], ['', '', ''])
+
 
 if __name__ == '__main__':
 
-    normal_vector0 = get_normal_vector(2, N)
-    normal_vector1 = get_normal_vector(2, N)
+    X0 = np.load("resources/dataset_1.npy")
+    X1 = np.load("resources/dataset_2.npy")
 
-    X0 = get_dataset_l(normal_vector0, M0, B0, N)
-    X1 = get_dataset_l(normal_vector1, M1, B1, N)
+    # ===================
+    task2(X0, X1)
+    a = 3
 
-    X0_e = get_dataset_le(normal_vector0, M0, B0, N)
-    X1_e = get_dataset_le(normal_vector1, M1, B0, N)
-
-    # 1. Построить линейный классификатор, максимизирующий критерий Фишера, для классов 0 и 1
-    # двумерных нормально распределенных векторов признаков для случаев равных и неравных
-    # корреляционных матриц. Сравнить качество полученного классификатора с байесовским классификатором
-
-    # =============================
-    # Разные корреляционные матрицы
-    # =============================
-    fisher_W    = get_W(M0, M1, B0, B1)
-    sigma_0     = get_sigma(fisher_W, B0)
-    sigma_1     = get_sigma(fisher_W, B1)
-    fisher_wN   = get_wN(M0, M1, B0, B1, sigma_0, sigma_1)
-
-    fisher_X1   = np.arange(-3, 3, 0.01)
-    fisher_X0   = get_linear_border(fisher_W, fisher_X1, fisher_wN)
-
-    x_1_bayes = np.linspace(-3, 3, 400)
-    x_00_bayes = np.zeros(len(X0[0]))
-    x_01_bayes = np.zeros(len(X0[0]))
-    for i in range(0, len(X0[0])):
-        x_00_bayes[i], x_01_bayes[i] = get_bayos_lines(B0, B1, M0, M1, 0.5, 0.5, x_1_bayes[i])
-
-    plt.scatter(fisher_X0, fisher_X1)
-    plt.scatter(X0[0], X0[1])
-    plt.scatter(X1[0], X1[1])
-
-    plt.scatter(x_00_bayes, x_1_bayes)
-    plt.scatter(x_01_bayes, x_1_bayes)
-
-    plt.xlim((-2, 5))
-    plt.title("Критерий Фишера. Разные кор.матрицы")
-    plt.show()
-
-    #print(f'Критерий Фишера. Разные кор.матрицы. Ошибка: {classification_error(X0, np.append(fisher_W, fisher_wN), 0)}')
-
-    # =============================
-    # Равные корреляционные матрицы
-    # =============================
-    fisher_W    = get_W(M0, M1, B0, B0)
-    sigma_0     = get_sigma(fisher_W, B0)
-    sigma_1     = get_sigma(fisher_W, B0)
-    fisher_wN   = get_wN(M0, M1, B0, B0, sigma_0, sigma_1)
-
-    fisher_X1_e   = np.arange(-3, 3, 0.01)
-    fisher_X0_e   = get_linear_border(fisher_W, fisher_X1_e, fisher_wN)
-
-    x_1_bayes = np.linspace(-3, 3, 400)
-    x_0_bayes = np.zeros(len(X0[0]))
-    for i in range(0, len(X0[0])):
-        x_0_bayes[i] = get_bayos_lines(B0, B0, M0, M1, 0.5, 0.5, x_1_bayes[i])
-
-    plt.scatter(fisher_X0_e, fisher_X1_e)
-    plt.scatter(X0_e[0], X0_e[1])
-    plt.scatter(X1_e[0], X1_e[1])
-
-    plt.scatter(x_0_bayes, x_1_bayes)
-
-    plt.xlim((-2, 5))
-    plt.title("Критерий Фишера. Равные кор.матрицы")
-    plt.show()
-
-    print(f'Критерий Фишера. Равные кор.матрицы. Ошибка: {classification_error(X0_e, np.append(fisher_W, fisher_wN), 0)}')
-
-    # 2. Построить линейный классификатор, минимизирующий среднеквадратичную ошибку, для классов 0 и 1
-    # двумерных нормально распределенных векторов признаков для случаев равных и неравных корреляционных матриц.
-    # Сравнить качество полученного классификатора с байесовским классификатором и классификатором Фишера.
-
-    # =============================
-    # Разные корреляционные матрицы
-    # =============================
-    sko_W = get_W__sko(X0, X1)
-    sko_X1 = np.arange(-6, 6, 0.01)
-    sko_X0 = get_linear_border([sko_W[0], sko_W[1]], sko_X1, sko_W[2])
-
-    plt.scatter(x_00_bayes, x_1_bayes)
-    plt.scatter(x_01_bayes, x_1_bayes)
-    plt.plot(sko_X0, sko_X1)
-    plt.scatter(X0[0], X0[1])
-    plt.scatter(X1[0], X1[1])
-
-    plt.xlim((-2, 5))
-    plt.ylim((-5, 5))
-    plt.title("Минимизация ско. Разные кор.матрицы")
-    plt.show()
-
-    #print(f'Минимизация ско. Разные кор.матрицы. Ошибка: {classification_error_sko(X0_e, sko_W, 0)}')
-
-    # =============================
-    # Равные корреляционные матрицы
-    # =============================
-    sko_W = get_W__sko(X0, X1)
-    sko_X1_e = np.arange(-6, 6, 0.01)
-    sko_X0_e = get_linear_border([sko_W[0], sko_W[1]], sko_X1, sko_W[2])
-
-    plt.scatter(fisher_X0_e, fisher_X1_e)
-    plt.plot(sko_X0, sko_X1)
-    plt.scatter(X0_e.T[:, 0], X0_e.T[:, 1])
-    plt.scatter(X1_e.T[:, 0], X1_e.T[:, 1])
-
-    plt.scatter(x_0_bayes, x_1_bayes)
-
-    plt.xlim((-2, 5))
-    plt.title("Минимизация ско. Равные кор.матрицы")
-    plt.show()
-
-    #print(f'Минимизация ско. Равные кор.матрицы. Ошибка: {classification_error(X0_e, sko_W, 0)}')
-
-    # 3. Построить линейный классификатор, основанный на процедуре Роббинса-Монро, для классов 0 и 1 двумерных
-    # нормально распределенных векторов признаков для случаев равных и неравных корреляционных матриц. Исследовать
-    # зависимость скорости сходимости итерационного процесса и качества классификации от выбора начальных
-    # условий и выбора последовательности корректирующих коэффициентов. Сравнить качество полученного
-    # классификатора с байесовским классификатором.
-
-    draw_robbins_monro_line(X0, X1, akp, 'Разные кор.матрицы', [x_01_bayes, x_1_bayes])
-    draw_robbins_monro_line(X0_e, X1_e, akp, 'Равные кор.матрицы', [x_0_bayes, x_1_bayes])
-
-    draw_robbins_monro_line(X0, X1, nsko, 'Разные кор.матрицы')
-    draw_robbins_monro_line(X0_e, X1_e, nsko, 'Равные кор.матрицы')
-
-    draw_beta_dependency(X0, X1, akp, 'Разные кор.матрицы')
-    draw_beta_dependency(X0_e, X1_e, akp, 'Равные кор.матрицы')
-
-    draw_beta_dependency(X0, X1, nsko, 'Разные кор.матрицы')
-    draw_beta_dependency(X0_e, X1_e, nsko, 'Равные кор.матрицы')
-
-    draw_W_dependency(X0, X1, akp, 'Разные кор.матрицы')
-    draw_W_dependency(X0_e, X1_e, akp, 'Равные кор.матрицы')
-
-    draw_W_dependency(X0, X1, nsko, 'Разные кор.матрицы')
-    draw_W_dependency(X0_e, X1_e, nsko, 'Равные кор.матрицы')
 
 
 

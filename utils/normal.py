@@ -12,7 +12,7 @@ def get_normal_vector(dim, length):
     return vector / (np.sqrt(length) * np.sqrt(1 / 12))
 
 
-def get_dataset(vector, M, cor_matrix, size):
+def get_dataset(vector: object, M: object, cor_matrix: object, size: object) -> object:
     A = np.zeros([2, 2], "float32")
     A[0][0] = np.sqrt(cor_matrix[0][0])
     A[1][0] = cor_matrix[1][0] * np.sqrt(cor_matrix[0][0])
