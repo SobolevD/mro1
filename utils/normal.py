@@ -25,9 +25,9 @@ def get_dataset(vector: object, M: object, cor_matrix: object, size: object) -> 
 
 def get_dataset_l(vector, M, cor_matrix, size):
     if M[0] == 1 and M[1] == -1:
-        return np.load('X0.npy')
+        return np.load('X0_1.npy')
     if M[0] == 2 and M[1] == 2:
-        return np.load('X1.npy')
+        return np.load('X1_1.npy')
 
 
 def get_dataset_le(vector, M, cor_matrix, size):
