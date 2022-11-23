@@ -1,5 +1,7 @@
 import numpy as np
 
+EPS = 1e-04
+
 N = 100
 MATRICES_COUNT = 20
 GRAPH_SIZE = (10, 10)
