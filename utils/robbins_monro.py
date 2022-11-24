@@ -71,7 +71,7 @@ def draw_robbins_monro_line(X0, X1, derivative_func, title_cor, bayes_coords = N
 
     X, R = __get_X_R(X0, X1)
 
-    colors = {500: 'blue', 600: 'green', 700: 'black', 800: 'red'}
+    colors = {500: 'blue', 600: 'blue', 700: 'black', 800: 'red'}
     labels = {500: 'Step 1', 600: 'Step 2', 700: 'Step 3', 800: 'Step 4'}
 
     W = ''
@@ -110,7 +110,7 @@ def draw_beta_dependency(X0, X1, derivative_func, title_cor):
 
     X, R = __get_X_R(X0, X1)
 
-    colors = {1: 'blue', 2: 'green', 3: 'black', 4: 'red', 5: 'purple'}
+    colors = {1: 'blue', 2: 'blue', 3: 'black', 4: 'red', 5: 'purple'}
     labels = {1: 'Step 1', 2: 'Step 2', 3: 'Step 3', 4: 'Step 4', 5: 'Step 5'}
 
     beta_intermediate = 0.51
@@ -140,7 +140,7 @@ def draw_W_dependency(X0, X1, derivative_func, title_cor):
 
     X, R = __get_X_R(X0, X1)
 
-    colors = {1: 'blue', 2: 'green', 3: 'black', 4: 'red', 5: 'purple'}
+    colors = {1: 'blue', 2: 'blue', 3: 'black', 4: 'red', 5: 'purple'}
     labels = {1: 'Step 1', 2: 'Step 2', 3: 'Step 3', 4: 'Step 4', 5: 'Step 5'}
 
     W_start = 1

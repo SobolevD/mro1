@@ -7,16 +7,16 @@ from utils.sup_vectors import get_linear_classificator, get_train_dataset, get_P
     get_P_kernel, get_K, get_lambda, get_support_vectors, get_support_vector_classes
 
 
-def draw_canvas(title, X0, X1, border_X, border_Y, colors, labels):
+def draw_canvas(title, X0, X1, border_X, border_Y, colors):
 
     plt.figure()
     plt.title(title)
 
     plt.plot(X0[0, :, :], X0[1, :, :], color='red',   marker='+')
-    plt.plot(X1[0, :, :], X1[1, :, :], color='green', marker='*')
+    plt.plot(X1[0, :, :], X1[1, :, :], color='blue', marker='*')
 
     for i in range(len(border_X)):
-        plt.plot(border_X[i], border_Y[i], color=colors[i], label=labels[i])
+        plt.plot(border_X[i], border_Y[i], color=colors[i])
 
     plt.legend()
 
@@ -77,8 +77,8 @@ def task2(dataset1, dataset2):
     support_vectors             = get_support_vectors(dataset, support_vectors_positions)
     support_vectors_classes     = get_support_vector_classes(dataset, support_vectors_positions)
 
-    red_support_vectors         = support_vectors[support_vectors_classes == -1]
-    green_support_vectors       = support_vectors[support_vectors_classes == 1]
+    support_vectors_class_1     = support_vectors[support_vectors_classes == -1]
+    support_vectors_class_2     = support_vectors[support_vectors_classes == 1]
 
     # Весовые коэффициенты через двойственные коэффициенты
     W = np.matmul(
@@ -102,57 +102,58 @@ def task2(dataset1, dataset2):
     support_vectors_svc_indices     = svc_clf.support_
     support_vectors_svc_classes     = dataset[support_vectors_svc_indices, -1, 0]
 
-    red_support_vectors_svc         = support_vectors_svc[support_vectors_svc_classes == -1]
-    green_support_vectors_svc       = support_vectors_svc[support_vectors_svc_classes == 1]
+    support_vectors_svc_class_1         = support_vectors_svc[support_vectors_svc_classes == -1]
+    support_vectors_svc_class_2       = support_vectors_svc[support_vectors_svc_classes == 1]
 
     # весовые коэффициенты и пороговое значение для модели SVC
-    W_svc_clf   = svc_clf.coef_.T
-    w_N_svc_clf = svc_clf.intercept_[0]
-    W_svc_clf   = concat(W_svc_clf, w_N_svc_clf)
+    W_svc   = svc_clf.coef_.T
+    w_N_svc = svc_clf.intercept_[0]
+    W_svc   = concat(W_svc, w_N_svc)
     # ========================== [SVC] ========================== #
 
     # ========================== [LinearSVC] ========================== #
-    linear_svc_clf      = LinearSVC(C=(np.max(_lambda) + EPS))
-    linear_svc_clf.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
+    linear_svc      = LinearSVC(C=(np.max(_lambda) + EPS))
+    linear_svc.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
 
-    W_linear_svc_clf    = linear_svc_clf.coef_.T
-    w_N_linear_svc_clf  = linear_svc_clf.intercept_[0]
-    W_linear_svc_clf    = concat(W_linear_svc_clf, w_N_linear_svc_clf)
+    W_linear_svc    = linear_svc.coef_.T
+    w_N_linear_svc  = linear_svc.intercept_[0]
+    W_linear_svc    = concat(W_linear_svc, w_N_linear_svc)
     # ========================== [LinearSVC] ========================== #
 
     print(f"W (Solve qp):\n{W}\n"
-          f"W (SVC):\n{W_svc_clf}\n"
-          f"W (Linear SVC):\n{W_linear_svc_clf}\n")
+          f"W (SVC):\n{W_svc}\n"
+          f"W (Linear SVC):\n{W_linear_svc}\n")
 
     # Разделяющая полосу и разделяющая гиперплоскость
     y           = np.arange(-4, 4, 0.1)
     x           = get_linear_border(y, W)
-    x_svc       = get_linear_border(y, W_svc_clf)
-    x_lin_svc   = get_linear_border(y, W_linear_svc_clf)
+    x_svc       = get_linear_border(y, W_svc)
+    x_lin_svc   = get_linear_border(y, W_linear_svc)
 
-    draw_canvas(f"Solve QP", dataset1, dataset2, [x, x + 1 / W[0], x - 1 / W[0]], [y, y, y],
-                ['black', 'green', 'red'], ['', '', ''])
-    plt.scatter(red_support_vectors[:, 0],   red_support_vectors[:, 1],     color='red')
-    plt.scatter(green_support_vectors[:, 0], green_support_vectors[:, 1],   color='green')
+    draw_canvas(f"Solve QP",
+                dataset1, dataset2,
+                [x, x + 1 / W[0], x - 1 / W[0]],
+                [y, y, y],
+                ['black', 'blue', 'red'])
+    plt.scatter(support_vectors_class_1[:, 0], support_vectors_class_1[:, 1], color='red')
+    plt.scatter(support_vectors_class_2[:, 0], support_vectors_class_2[:, 1], color='blue')
 
     draw_canvas(f"SVC(kernel=linear)",
                 dataset1, dataset2,
-                [x_svc, x_svc + 1 / W_svc_clf[0],
-                 x_svc - 1 / W_svc_clf[0]],
+                [x_svc, x_svc + 1 / W_svc[0],
+                 x_svc - 1 / W_svc[0]],
                 [y, y, y],
-                ['black', 'green', 'red'],
-                ['', '', ''])
+                ['black', 'blue', 'red'])
 
-    plt.scatter(red_support_vectors_svc[:, 0],   red_support_vectors_svc[:, 1],     color='red')
-    plt.scatter(green_support_vectors_svc[:, 0], green_support_vectors_svc[:, 1],   color='green')
+    plt.scatter(support_vectors_svc_class_1[:, 0], support_vectors_svc_class_1[:, 1],     color='red')
+    plt.scatter(support_vectors_svc_class_2[:, 0], support_vectors_svc_class_2[:, 1],   color='blue')
 
     draw_canvas(f"LinearSVC",
                 dataset1, dataset2,
-                [x_lin_svc, x_lin_svc + 1 / W_linear_svc_clf[0],
-                 x_lin_svc - 1 / W_linear_svc_clf[0]],
+                [x_lin_svc, x_lin_svc + 1 / W_linear_svc[0],
+                 x_lin_svc - 1 / W_linear_svc[0]],
                 [y, y, y],
-                ['black', 'green', 'red'],
-                ['', '', ''])
+                ['black', 'blue', 'red'])
     plt.show()
 
 
@@ -171,7 +172,7 @@ def task3(dataset3, dataset4):
     b = np.zeros(1)
     # ==================== PARAMETERS ==================== #
 
-    for C in [0.1, 1, 10, 20]:
+    for C in [0.1, 1, 10, 35]:
         h = np.concatenate(
             (np.zeros((N,)), np.full((N,), C)),
             axis=0)
@@ -184,8 +185,8 @@ def task3(dataset3, dataset4):
         support_vectors             = get_support_vectors(dataset, support_vectors_positions)
         support_vectors_classes     = get_support_vector_classes(dataset, support_vectors_positions)
 
-        red_support_vectors         = support_vectors[support_vectors_classes == -1]
-        green_support_vectors       = support_vectors[support_vectors_classes == 1]
+        support_vectors_class_1     = support_vectors[support_vectors_classes == -1]
+        support_vectors_class_2     = support_vectors[support_vectors_classes == 1]
 
         W = np.matmul(
             (_lambda * A)[support_vectors_positions].T,
@@ -198,13 +199,13 @@ def task3(dataset3, dataset4):
         svc_clf.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
 
         # опорные вектора для метода SVC
-        support_vectors_svc         = svc_clf.support_vectors_
+        support_vectors_svc             = svc_clf.support_vectors_
 
-        support_vectors_svc_indices = svc_clf.support_
-        support_vectors_svc_classes = dataset[support_vectors_svc_indices, -1, 0]
+        support_vectors_svc_indices     = svc_clf.support_
+        support_vectors_svc_classes     = dataset[support_vectors_svc_indices, -1, 0]
 
-        red_support_vectors_svc     = support_vectors_svc[support_vectors_svc_classes == -1]
-        green_support_vectors_svc   = support_vectors_svc[support_vectors_svc_classes == 1]
+        support_vectors_svc_class_1     = support_vectors_svc[support_vectors_svc_classes == -1]
+        support_vectors_svc_class_2     = support_vectors_svc[support_vectors_svc_classes == 1]
 
         W_svc   = svc_clf.coef_.T
         w_N_svc = svc_clf.intercept_[0]
@@ -226,22 +227,20 @@ def task3(dataset3, dataset4):
                     dataset3, dataset4,
                     [x, x + 1 / W[0], x - 1 / W[0]],
                     [y, y, y],
-                    ['black', 'green', 'red'],
-                    ['', '', ''])
+                    ['black', 'blue', 'red'])
 
-        plt.scatter(red_support_vectors[:, 0], red_support_vectors[:, 1],       color='red')
-        plt.scatter(green_support_vectors[:, 0], green_support_vectors[:, 1],   color='green')
+        plt.scatter(support_vectors_class_1[:, 0], support_vectors_class_1[:, 1],       color='red')
+        plt.scatter(support_vectors_class_2[:, 0], support_vectors_class_2[:, 1],   color='blue')
 
         draw_canvas(f"SVC C={C}",
                     dataset3, dataset4,
                     [x_svc, x_svc + 1 / W_svc[0],
                      x_svc - 1 / W_svc[0]],
                     [y, y, y],
-                    ['black', 'green', 'red'],
-                    ['', '', ''])
+                    ['black', 'blue', 'red'])
 
-        plt.scatter(red_support_vectors_svc[:, 0], red_support_vectors_svc[:, 1],       color='red')
-        plt.scatter(green_support_vectors_svc[:, 0], green_support_vectors_svc[:, 1],   color='green')
+        plt.scatter(support_vectors_svc_class_1[:, 0], support_vectors_svc_class_1[:, 1],       color='red')
+        plt.scatter(support_vectors_svc_class_2[:, 0], support_vectors_svc_class_2[:, 1],   color='blue')
         plt.show()
 
 # ===========================================
@@ -280,8 +279,8 @@ def task4(dataset3, dataset4):
         support_vectors             = get_support_vectors(dataset, support_vectors_positions)
         support_vectors_classes     = get_support_vector_classes(dataset, support_vectors_positions)
 
-        red_support_vectors         = support_vectors[support_vectors_classes == -1]
-        green_support_vectors       = support_vectors[support_vectors_classes == 1]
+        support_vectors_class_1     = support_vectors[support_vectors_classes == -1]
+        support_vectors_class_2     = support_vectors[support_vectors_classes == 1]
 
         # находим пороговое значение через ядро и опорные вектора
         w_N = []
@@ -300,13 +299,13 @@ def task4(dataset3, dataset4):
         svc_clf = SVC(C=C, kernel=kernel, degree=3, coef0=1) # poly
         svc_clf.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
 
-        support_vectors_svc         = svc_clf.support_vectors_
+        support_vectors_svc             = svc_clf.support_vectors_
 
-        support_vectors_svc_pos = svc_clf.support_
-        support_vectors_svc_classes = dataset[support_vectors_svc_pos, -1, 0]
+        support_vectors_svc_pos         = svc_clf.support_
+        support_vectors_svc_classes     = dataset[support_vectors_svc_pos, -1, 0]
 
-        red_support_vectors_svc     = support_vectors_svc[support_vectors_svc_classes == -1]
-        green_support_vectors_svc   = support_vectors_svc[support_vectors_svc_classes == 1]
+        support_vectors_svc_class_1     = support_vectors_svc[support_vectors_svc_classes == -1]
+        support_vectors_svc_class_2     = support_vectors_svc[support_vectors_svc_classes == 1]
         # ==================== [SVC] ==================== #
 
         # Разделяющая полоса и разделяющая гиперплоскость
@@ -338,22 +337,20 @@ def task4(dataset3, dataset4):
         draw_canvas(f"Solve QP ({kernel}) C={C}",
                     dataset3, dataset4,
                     [], [],
-                    ['black', 'green', 'red'],
-                    ['', '', ''])
+                    ['black', 'blue', 'red'])
 
-        plt.contour(xx, yy, discriminant_func_values, levels=[-1, 0, 1], colors=['red', 'black', 'green'])
-        plt.scatter(red_support_vectors[:, 0], red_support_vectors[:, 1], color='red')
-        plt.scatter(green_support_vectors[:, 0], green_support_vectors[:, 1], color='green')
+        plt.contour(xx, yy, discriminant_func_values, levels=[-1, 0, 1], colors=['red', 'black', 'blue'])
+        plt.scatter(support_vectors_class_1[:, 0], support_vectors_class_1[:, 1], color='red')
+        plt.scatter(support_vectors_class_2[:, 0], support_vectors_class_2[:, 1], color='blue')
 
         draw_canvas(f"SVC ({kernel}) C={C}",
                     dataset3, dataset4,
                     [], [],
-                    ['black', 'green', 'red'],
-                    ['', '', ''])
+                    ['black', 'blue', 'red'])
 
-        plt.contour(xx, yy, discriminant_func_values_svc, levels=[-1, 0, 1], colors=['red', 'black', 'green'])
-        plt.scatter(red_support_vectors_svc[:, 0], red_support_vectors_svc[:, 1], color='red')
-        plt.scatter(green_support_vectors_svc[:, 0], green_support_vectors_svc[:, 1], color='green')
+        plt.contour(xx, yy, discriminant_func_values_svc, levels=[-1, 0, 1], colors=['red', 'black', 'blue'])
+        plt.scatter(support_vectors_svc_class_1[:, 0], support_vectors_svc_class_1[:, 1], color='red')
+        plt.scatter(support_vectors_svc_class_2[:, 0], support_vectors_svc_class_2[:, 1], color='blue')
         plt.show()
 
 
