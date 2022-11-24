@@ -12,7 +12,7 @@ def draw_canvas(title, X0, X1, border_X, border_Y, colors):
     plt.figure()
     plt.title(title)
 
-    plt.plot(X0[0, :, :], X0[1, :, :], color='red',   marker='+')
+    plt.plot(X0[0, :, :], X0[1, :, :], color='red',  marker='+')
     plt.plot(X1[0, :, :], X1[1, :, :], color='blue', marker='*')
 
     for i in range(len(border_X)):
@@ -68,6 +68,7 @@ def task2(dataset1, dataset2):
     # ==================== PARAMETERS ==================== #
 
     # ==================== [SOLVE QP] ==================== #
+
     # Вектор двойственных коэффициентов
     _lambda = get_lambda(P, q, G, h, A, b)
 
@@ -102,8 +103,8 @@ def task2(dataset1, dataset2):
     support_vectors_svc_indices     = svc_clf.support_
     support_vectors_svc_classes     = dataset[support_vectors_svc_indices, -1, 0]
 
-    support_vectors_svc_class_1         = support_vectors_svc[support_vectors_svc_classes == -1]
-    support_vectors_svc_class_2       = support_vectors_svc[support_vectors_svc_classes == 1]
+    support_vectors_svc_class_1     = support_vectors_svc[support_vectors_svc_classes == -1]
+    support_vectors_svc_class_2     = support_vectors_svc[support_vectors_svc_classes == 1]
 
     # весовые коэффициенты и пороговое значение для модели SVC
     W_svc   = svc_clf.coef_.T
@@ -178,7 +179,7 @@ def task3(dataset3, dataset4):
             axis=0)
 
         # Вектор двойственных коэффициентов
-        _lambda = get_lambda(P, q, G, h, A, b)
+        _lambda                     = get_lambda(P, q, G, h, A, b)
 
         support_vectors_positions   = _lambda > EPS
 
@@ -188,14 +189,15 @@ def task3(dataset3, dataset4):
         support_vectors_class_1     = support_vectors[support_vectors_classes == -1]
         support_vectors_class_2     = support_vectors[support_vectors_classes == 1]
 
-        W = np.matmul(
+        W   = np.matmul(
             (_lambda * A)[support_vectors_positions].T,
             support_vectors).reshape(2, 1)
+
         w_N = np.mean(support_vectors_classes - np.matmul(W.T, support_vectors.T))
-        W = concat(W, w_N)
+        W   = concat(W, w_N)
 
         # ========================== [SVC] ========================== #
-        svc_clf = SVC(C=C, kernel='linear')
+        svc_clf                         = SVC(C=C, kernel='linear')
         svc_clf.fit(dataset[:, :-1, 0], dataset[:, -1, 0])
 
         # опорные вектора для метода SVC
