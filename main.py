@@ -4,7 +4,7 @@ from sklearn.svm import SVC, LinearSVC
 
 from utils.consts import EPS
 from utils.sup_vectors import get_linear_classificator, get_train_dataset, get_P, get_A, concat, get_discr_kernel, \
-    get_P_kernel, get_K, get_lambda, get_support_vectors, get_support_vector_classes
+    get_P_kernel, get_lambda, get_support_vectors, get_support_vector_classes
 
 
 def draw_canvas(title, X0, X1, border_X, border_Y, colors):
@@ -12,11 +12,34 @@ def draw_canvas(title, X0, X1, border_X, border_Y, colors):
     plt.figure()
     plt.title(title)
 
-    plt.plot(X0[0, :, :], X0[1, :, :], color='red',  marker='+')
-    plt.plot(X1[0, :, :], X1[1, :, :], color='blue', marker='*')
+    plt.plot(X0[0, :, :], X0[1, :, :], color='red',  marker='.')
+    plt.plot(X1[0, :, :], X1[1, :, :], color='blue', marker='.')
 
     for i in range(len(border_X)):
         plt.plot(border_X[i], border_Y[i], color=colors[i])
+
+    plt.legend()
+
+    plt.xlim(left=-4,   right=4)
+    plt.ylim(bottom=-4, top=4)
+
+
+def draw_canvas_3(title, X0, X1,
+                  border_X_1, border_Y_1,
+                  border_X_2, border_Y_2,
+                  border_X_3, border_Y_3,
+                  colors_1, colors_2, colors_3):
+
+    plt.figure()
+    plt.title(title)
+
+    plt.plot(X0[0, :, :], X0[1, :, :], color='red',  marker='.')
+    plt.plot(X1[0, :, :], X1[1, :, :], color='blue', marker='.')
+
+    for i in range(len(border_X_1)):
+        plt.plot(border_X_1[i], border_Y_1[i], color=colors_1[i], ds='steps')
+        plt.plot(border_X_2[i], border_Y_2[i], color=colors_2[i])
+        plt.plot(border_X_3[i], border_Y_3[i], color=colors_3[i])
 
     plt.legend()
 
@@ -131,31 +154,29 @@ def task2(dataset1, dataset2):
     x_svc       = get_linear_border(y, W_svc)
     x_lin_svc   = get_linear_border(y, W_linear_svc)
 
-    draw_canvas(f"Solve QP",
+    draw_canvas_3(f"Solve QP & SVC & SVC Linear",
                 dataset1, dataset2,
+
                 [x, x + 1 / W[0], x - 1 / W[0]],
                 [y, y, y],
-                ['black', 'blue', 'red'])
+
+                  [x_svc, x_svc + 1 / W_svc[0],
+                   x_svc - 1 / W_svc[0]],
+                   [y, y, y],
+
+                  [x_lin_svc, x_lin_svc + 1 / W_linear_svc[0],
+                   x_lin_svc - 1 / W_linear_svc[0]],
+                  [y, y, y],
+
+                    ['black', 'blue', 'red'],
+                  ['green', 'yellow', 'orange'],
+                  ['brown', 'purple', 'gray'])
+
     plt.scatter(support_vectors_class_1[:, 0], support_vectors_class_1[:, 1], color='red')
     plt.scatter(support_vectors_class_2[:, 0], support_vectors_class_2[:, 1], color='blue')
 
-    draw_canvas(f"SVC(kernel=linear)",
-                dataset1, dataset2,
-                [x_svc, x_svc + 1 / W_svc[0],
-                 x_svc - 1 / W_svc[0]],
-                [y, y, y],
-                ['black', 'blue', 'red'])
-
-    plt.scatter(support_vectors_svc_class_1[:, 0], support_vectors_svc_class_1[:, 1],     color='red')
+    plt.scatter(support_vectors_svc_class_1[:, 0], support_vectors_svc_class_1[:, 1],   color='red')
     plt.scatter(support_vectors_svc_class_2[:, 0], support_vectors_svc_class_2[:, 1],   color='blue')
-
-    draw_canvas(f"LinearSVC",
-                dataset1, dataset2,
-                [x_lin_svc, x_lin_svc + 1 / W_linear_svc[0],
-                 x_lin_svc - 1 / W_linear_svc[0]],
-                [y, y, y],
-                ['black', 'blue', 'red'])
-    plt.show()
 
 
 def task3(dataset3, dataset4):
@@ -225,7 +246,7 @@ def task3(dataset3, dataset4):
         x     = get_linear_border(y, W)
         x_svc = get_linear_border(y, W_svc)
 
-        draw_canvas(f"Solve QP (cvxopt) C={C}",
+        draw_canvas(f"Solve QP C={C}",
                     dataset3, dataset4,
                     [x, x + 1 / W[0], x - 1 / W[0]],
                     [y, y, y],
@@ -255,7 +276,6 @@ def task4(dataset3, dataset4):
 
     # ==================== PARAMETERS ==================== #
     kernel = 'poly'
-    K = get_K
     params = [3, 1]
 
     P = get_P_kernel(dataset, N, params)
