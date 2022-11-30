@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.svm import SVC, LinearSVC
 
-from utils.consts import EPS
+from utils.baios import get_bayos_lines
+from utils.consts import EPS, B0, B1, M0, M1
 from utils.sup_vectors import get_linear_classificator, get_train_dataset, get_P, get_A, concat, get_discr_kernel, \
     get_P_kernel, get_lambda, get_support_vectors, get_support_vector_classes
 
@@ -365,6 +366,13 @@ def task4(dataset3, dataset4):
         plt.scatter(support_vectors_class_1[:, 0], support_vectors_class_1[:, 1], color='red')
         plt.scatter(support_vectors_class_2[:, 0], support_vectors_class_2[:, 1], color='blue')
 
+        baios_x = np.linspace(-4, 4, 200).reshape(200, 1)
+        baios_y = np.zeros(200).reshape(200, 1)
+        for t in range(0, len(baios_x)):
+            _, baios_y[t] = get_bayos_lines(B0, B1, M0, M1, 0.5, 0.5, baios_x[t])
+
+        plt.scatter(baios_x, baios_y, color='purple')
+
         draw_canvas(f"SVC ({kernel}) C={C}",
                     dataset3, dataset4,
                     [], [],
@@ -373,7 +381,40 @@ def task4(dataset3, dataset4):
         plt.contour(xx, yy, discriminant_func_values_svc, levels=[-1, 0, 1], colors=['red', 'black', 'blue'])
         plt.scatter(support_vectors_svc_class_1[:, 0], support_vectors_svc_class_1[:, 1], color='red')
         plt.scatter(support_vectors_svc_class_2[:, 0], support_vectors_svc_class_2[:, 1], color='blue')
+
+        baios_x = np.linspace(-4, 4, 200).reshape(200, 1)
+        baios_y = np.zeros(200).reshape(200, 1)
+        for t in range(0, len(baios_x)):
+            _, baios_y[t] = get_bayos_lines(B0, B1, M0, M1, 0.5, 0.5, baios_x[t])
+
+        plt.scatter(baios_x, baios_y, color='purple')
+
         plt.show()
+
+        # вероятности ошибочной классификации
+        p0 = 0.
+        p1 = 0.
+        for i in range(dataset3.shape[2]):
+            if get_discr_kernel(support_vectors, (_lambda * A)[support_vectors_positions], dataset3[:, :, i], params) + w_N > 0:
+                p0 += 1
+            if get_discr_kernel(support_vectors, (_lambda * A)[support_vectors_positions], dataset4[:, :, i], params) + w_N < 0:
+                p1 += 1
+        p0 /= dataset3.shape[2]
+        p1 /= dataset3.shape[2]
+
+        print(f"solve_qp(osqp) C={C} kernel({kernel}) p0: {p0} p1: {p1}")
+
+        # вероятности ошибочной классификации
+        test_dataset3 = dataset[dataset[:, -1, 0] < 0, :-1, 0]
+        test_dataset4 = dataset[dataset[:, -1, 0] > 0, :-1, 0]
+
+        predicted_class3 = svc_clf.predict(test_dataset3)
+        predicted_class4 = svc_clf.predict(test_dataset4)
+
+        p0 = np.sum(predicted_class3 > 0) / test_dataset3.shape[0]
+        p1 = np.sum(predicted_class4 < 0) / test_dataset4.shape[0]
+
+        print(f"SVC C={C} kernel({kernel}) p0: {p0} p1: {p1}")
 
 
 if __name__ == '__main__':
@@ -383,8 +424,8 @@ if __name__ == '__main__':
     X1_0 = np.load("resources/X0_1.npy")
     X1_1 = np.load("resources/X1_1.npy")
 
-    task2(X0_0, X0_1)
-    task3(X1_0, X1_1)
+    #task2(X0_0, X0_1)
+    #task3(X1_0, X1_1)
     task4(X1_0, X1_1)
 
 
