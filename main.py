@@ -53,30 +53,29 @@ if __name__ == '__main__':
     print("===================================")
     print("========== Метод Парзена ==========")
     print("===================================")
+
     n = 2
-    train_dataset_len = 50
-    test_dataset_len = 100
+    train_dataset_len   = 50
+    test_dataset_len    = 100
 
-    train_dataset0 = get_dataset(get_normal_vector(n, train_dataset_len), M0, B0, train_dataset_len)
-    train_dataset1 = get_dataset(get_normal_vector(n, train_dataset_len), M1, B1, train_dataset_len)
-    train_datasets = [train_dataset0, train_dataset1]
+    train_dataset0  = get_dataset(get_normal_vector(n, train_dataset_len), M0, B0, train_dataset_len)
+    train_dataset1  = get_dataset(get_normal_vector(n, train_dataset_len), M1, B1, train_dataset_len)
+    train_datasets  = [train_dataset0, train_dataset1]
 
-    test_dataset0 = get_dataset(get_normal_vector(n, test_dataset_len), M0, B0, test_dataset_len)
-    test_dataset1 = get_dataset(get_normal_vector(n, test_dataset_len), M1, B1, test_dataset_len)
-    test_datasets = [test_dataset0, test_dataset1]
+    test_dataset0   = get_dataset(get_normal_vector(n, test_dataset_len), M0, B0, test_dataset_len)
+    test_dataset1   = get_dataset(get_normal_vector(n, test_dataset_len), M1, B1, test_dataset_len)
+    test_datasets   = [test_dataset0, test_dataset1]
 
-    y_test = np.zeros(test_dataset_len)
-    y_test = np.concatenate((y_test, np.ones(test_dataset_len)), axis=0)
-    y_pred = classify_data(train_datasets, test_datasets, parzen_classifier, None)
-    p0, p1 = get_classification_error_from_class_nums(y_pred, y_test)
-    empirical_risk = 0.5 * p0 + 0.5 * p1
+    class_num       = np.concatenate((np.zeros(train_dataset_len), np.ones(train_dataset_len)), axis=0)
+    test_class_num  = np.concatenate((np.zeros(test_dataset_len), np.ones(test_dataset_len)), axis=0)
+
+    y_predicted     = classify_data(train_datasets, test_datasets, parzen_classifier, None)
+    p0, p1          = get_classification_error_from_class_nums(y_predicted, test_class_num)
+    empirical_risk  = 0.5 * p0 + 0.5 * p1
 
     print(f"Вероятность ошибочной классификации объекта класса 0 в класс 1: {p0}")
-    print(f"Вероятность ошибочной классификации объекта класса 1 в в класс 0: {p1}")
+    print(f"Вероятность ошибочной классификации объекта класса 1 в класс 0: {p1}")
     print(f"Эмпирический риск: {empirical_risk}")
-
-    class_num   = np.concatenate((np.zeros(train_dataset_len), np.ones(train_dataset_len)), axis=0)
-    y_test      = np.concatenate((np.zeros(test_dataset_len), np.ones(test_dataset_len)), axis=0)
 
     K_array = [1, 3, 5]
     for K in K_array:
@@ -86,21 +85,28 @@ if __name__ == '__main__':
         print(f"============= K = {K} =============")
         print("===================================")
 
-        params_for_classifier = [K, class_num]
-        y_pred = classify_data(train_datasets, test_datasets, K_neighbours_classifier, params_for_classifier)
-        p0, p1 = get_classification_error_from_class_nums(y_pred, y_test)
-        empirical_risk = 0.5 * p0 + 0.5 * p1
+        params_for_classifier   = [K, class_num]
+
+        y_predicted             = classify_data(
+            train_datasets,
+            test_datasets,
+            K_neighbours_classifier,
+            params_for_classifier)
+
+        p0, p1                  = get_classification_error_from_class_nums(y_predicted, test_class_num)
+        empirical_risk          = 0.5 * p0 + 0.5 * p1
 
         print(f"Вероятность ошибочной классификации объекта класса 0 в класс 1: {p0}")
         print(f"Вероятность ошибочной классификации объекта класса 1 в класс 0: {p1}")
         print(f"Эмпирический риск: {empirical_risk}")
 
-    p0 = classification_error_by_params(test_dataset0, M0, M1, B0, B1, 0.5, 0.5)
-    p1 = classification_error_by_params(test_dataset1, M1, M0, B1, B0, 0.5, 0.5)
-    empirical_risk = 0.5 * p0 + 0.5 * p1
     print("==================================")
     print("====== Классификатор Байеса ======")
     print("==================================")
+
+    p0              = classification_error_by_params(test_dataset0, M0, M1, B0, B1, 0.5, 0.5)
+    p1              = classification_error_by_params(test_dataset1, M1, M0, B1, B0, 0.5, 0.5)
+    empirical_risk  = 0.5 * p0 + 0.5 * p1
 
     print(f"Вероятность ошибочной классификации объекта класса 0 в класс 1: {p0}")
     print(f"Вероятность ошибочной классификации объекта класса 1 в класс 0: {p1}")
