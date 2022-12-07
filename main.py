@@ -1,11 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from utils.K_neighbours import K_neighbours_classifier
-from utils.consts import M0, B0, M1, B1, M2, B2, B3, M3, M4, B4
-from utils.errors import classification_error_by_params
+from utils.consts import M0, B1, M1, B2, M2, B3, M3, B4, M4, B0
 from utils.normal import get_dataset, get_normal_vector
-from utils.parzen import parzen_classifier
 
 
 def calc_dist_for_vectors(vectors, target_vector):
@@ -85,10 +82,10 @@ def maximin_fit_predict(x_samples, typical_dist_func=None):
         if np.array_equal(centers_prev, centers):
             break
 
-    plt.title("Заивисимость типичного расстояния от номера итерации")
+    plt.title("Зависимость типичного расстояния от номера итерации")
     plt.plot(stats_r, stats_typical_dist)
     plt.show()
-    plt.title("Заивисимость максиминного расстояния от номера итерации")
+    plt.title("Зависимость максиминного расстояния от номера итерации")
     plt.plot(stats_r, stats_maximin_dist)
     plt.show()
 
@@ -105,9 +102,6 @@ def apply_algorithm(x_samples):
         res_clusters[t].append(x)
 
     return res_clusters, centers
-
-
-
 
 
 def merge_classes(datasets, shuffle_mode=True):
@@ -138,8 +132,8 @@ def k_means_fit_predict(x_samples, K):
         return np.array([np.mean(clusters[k], axis=0) for k in clusters])
 
     centers = x_samples[:K]
-    #     centers = np.array([x_samples[55], x_samples[103], x_samples[10], x_samples[11], x_samples[211]]) # пример для "неправильной" классификации
     targets = np.array([])
+
     r = 2
     stats = []
 
@@ -148,7 +142,10 @@ def k_means_fit_predict(x_samples, K):
         _, targets = update_labels(x_samples, centers)
         centers_prev = centers.copy()
         centers = update_centers(x_samples, targets, centers)
-        stats.append((r, sum(prev_targets != targets)))
+
+        equal = 1 if prev_targets.all() != targets.all() else 0
+
+        stats.append((r, equal))
         if np.array_equal(centers_prev, centers):
             break
         r += 1
@@ -179,11 +176,6 @@ if __name__ == '__main__':
     # ожиданиями и самостоятельно подобранными корреляционными матрицами, которые обеспечивают
     # линейную разделимость классов.
     N = 50
-    #train_dataset0 = get_dataset(get_normal_vector(2, N), M0, B0, N).T
-    #train_dataset1 = get_dataset(get_normal_vector(2, N), M1, B1, N).T
-    #train_dataset2 = get_dataset(get_normal_vector(2, N), M2, B2, N).T
-    #train_dataset3 = get_dataset(get_normal_vector(2, N), M3, B3, N).T
-    #train_dataset4 = get_dataset(get_normal_vector(2, N), M4, B4, N).T
 
     train_dataset0 = np.load('resources/datasets/red_dataset.npy')
     train_dataset1 = np.load('resources/datasets/blue_dataset.npy')
@@ -214,11 +206,41 @@ if __name__ == '__main__':
     # В качестве типичного расстояния взять половину среднего расстояния между существующими кластерами.
     # Построить отображение результатов кластеризации для числа кластеров, начиная с двух.
     # Построить график зависимости максимального (из минимальных) и типичного расстояний от числа кластеров.
-    res_clusters, centers_2 = apply_algorithm(merge_classes([train_dataset4, train_dataset2]))
-    res_clusters, centers_3 = apply_algorithm(merge_classes([train_dataset4, train_dataset2, train_dataset3]))
-    res_clusters, centers_4 = apply_algorithm(merge_classes([train_dataset4, train_dataset2, train_dataset3, train_dataset0]))
-    res_clusters, centers_5 = apply_algorithm(merge_classes([train_dataset4, train_dataset2, train_dataset1, train_dataset3, train_dataset0]))
+    res_clusters, centers_2 = apply_algorithm(merge_classes([train_dataset0, train_dataset4]))
 
+    add_dataset_to_canvas(train_dataset0, "red")
+    add_dataset_to_canvas(train_dataset4, "purple")
+    plt.scatter(centers_2[:2, 0], centers_2[:2, 1], color='black', s=100)
+    plt.show()
+
+    res_clusters, centers_3 = apply_algorithm(merge_classes([train_dataset0, train_dataset4, train_dataset3]))
+
+    add_dataset_to_canvas(train_dataset0, "red")
+    add_dataset_to_canvas(train_dataset4, "purple")
+    add_dataset_to_canvas(train_dataset3, "yellow")
+    plt.scatter(centers_3[:3, 0], centers_3[:3, 1], color='black', s=100)
+    plt.show()
+
+    res_clusters, centers_4 = apply_algorithm(merge_classes([train_dataset0, train_dataset4, train_dataset3, train_dataset2]))
+
+    add_dataset_to_canvas(train_dataset0, "red")
+    add_dataset_to_canvas(train_dataset4, "purple")
+    add_dataset_to_canvas(train_dataset3, "yellow")
+    add_dataset_to_canvas(train_dataset2, "green")
+    plt.scatter(centers_4[:4, 0], centers_4[:4, 1], color='black', s=100)
+    plt.show()
+
+    res_clusters, centers_5 = apply_algorithm(merge_classes([train_dataset0, train_dataset4, train_dataset3, train_dataset2, train_dataset1]))
+
+    add_dataset_to_canvas(train_dataset0, "red")
+    add_dataset_to_canvas(train_dataset4, "purple")
+    add_dataset_to_canvas(train_dataset3, "yellow")
+    add_dataset_to_canvas(train_dataset2, "green")
+    add_dataset_to_canvas(train_dataset1, "blue")
+    plt.scatter(centers_5[:5, 0], centers_5[:5, 1], color='black', s=100)
+    plt.show()
+
+    plt.title("Зависимость макс. (из мин.) и типичного расстояний от числа кластеров", fontsize=10)
     plt.plot(
         list(range(2, 6)),
         [
@@ -239,40 +261,55 @@ if __name__ == '__main__':
     # от номера итерации алгоритма.
 
     # Результат работы для 3-х кластеров
-    samples = apply_algorithm(merge_classes([train_dataset4, train_dataset2, train_dataset3]))
-    samples, targets, centers, stats = k_means_fit_predict(samples, 3)
+    x_samples = merge_classes([train_dataset4, train_dataset2, train_dataset3])
+    x_samples, targets, centers, stats = k_means_fit_predict(x_samples, 3)
 
     res_clusters = {int(t): [] for t in set(targets)}
-    for x, t in zip(samples, targets):
+    for x, t in zip(x_samples, targets):
         res_clusters[t].append(x)
 
     for t in res_clusters:
         add_dataset_to_canvas(np.matrix(res_clusters[t]), colors[t])
 
+    plt.scatter(centers[:, 0], centers[:, 1], color='black', s=100)
+    plt.show()
+
+    plt.title("Зависимость числа векторов признаков, сменивших номер кластера, от номера итерации алгоритма", fontsize=8)
     plt.plot(stats[:, 0], stats[:, 1])
+    plt.show()
 
     # Результат работы для 5-х кластеров (“правильная” кластеризация)
-    samples = merge_classes([train_dataset4, train_dataset2, train_dataset1, train_dataset3, train_dataset0])
-    samples, targets, centers, stats = k_means_fit_predict(samples, 5)
+    x_samples = merge_classes([train_dataset4, train_dataset2, train_dataset1, train_dataset3, train_dataset0])
+    x_samples, targets, centers, stats = k_means_fit_predict(x_samples, 5)
 
     res_clusters = {int(t): [] for t in set(targets)}
-    for x, t in zip(samples, targets):
+    for x, t in zip(x_samples, targets):
         res_clusters[t].append(x)
 
     for t in res_clusters:
         add_dataset_to_canvas(np.matrix(res_clusters[t]), colors[t])
 
+    plt.scatter(centers[:, 0], centers[:, 1], color='black', s=100)
+    plt.show()
+
+    plt.title("Зависимость числа векторов признаков, сменивших номер кластера, от номера итерации алгоритма", fontsize=8)
     plt.plot(stats[:, 0], stats[:, 1])
+    plt.show()
 
     # Результат работы для 5-х кластеров (“неправильная” кластеризация)
-    samples = merge_classes([train_dataset4, train_dataset2, train_dataset1, train_dataset3, train_dataset0])
-    samples, targets, centers, stats = k_means_fit_predict(samples, 5)
+    x_samples = merge_classes([train_dataset4, train_dataset2, train_dataset1, train_dataset3, train_dataset0])
+    x_samples, targets, centers, stats = k_means_fit_predict(x_samples, 5)
 
     res_clusters = {int(t): [] for t in set(targets)}
-    for x, t in zip(samples, targets):
+    for x, t in zip(x_samples, targets):
         res_clusters[t].append(x)
 
     for t in res_clusters:
         add_dataset_to_canvas(np.matrix(res_clusters[t]), colors[t])
 
+    plt.scatter(centers[:, 0], centers[:, 1], color='black', s=100)
+    plt.show()
+
+    plt.title("Зависимость числа векторов признаков, сменивших номер кластера, от номера итерации алгоритма", fontsize=8)
     plt.plot(stats[:, 0], stats[:, 1])
+    plt.show()
