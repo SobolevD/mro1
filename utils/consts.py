@@ -27,3 +27,13 @@ B3 = np.array((
 B4 = np.array((
     [0.13, -0.09],
     [-0.09, 0.13]))
+
+COLORS = [
+    "red",
+    "blue",
+    "green",
+    "yellow",
+    "purple",
+    "cyan",
+    "magenta",
+]
